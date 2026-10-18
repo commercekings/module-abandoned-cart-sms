@@ -7,14 +7,22 @@ Works with Magento 2.4.4+ · Luma checkout · PHP 8.1–8.5 · any SMS provider 
 **A text for every abandoned cart, next to the email.** The shopper gives a mobile number at checkout and ticks the
 checkbox for it; when the cart is left, one text brings them back.
 
+The reminder email is built into Abandoned Cart; this module adds the text.
+**Works together with:**
+
+- [module-abandoned-cart](https://github.com/commercekings/module-abandoned-cart) – the base: the email reminder, its finder, queue and retries.
+- [module-notification-twilio](https://github.com/commercekings/module-notification-twilio) – delivers the texts through Twilio,
+- [module-notification-infobip](https://github.com/commercekings/module-notification-infobip) – or through Infobip; pick one.
+- [module-rate-limit](https://github.com/commercekings/module-rate-limit) – recommended: limits the public sign-up endpoints (Magento 2.4.7+).
+
 - **Consent per number.** A checkbox next to the number, stored with the exact wording, the time and a hashed IP –
   the evidence US carriers (10DLC) and the GDPR ask for. A STOP reply ends it.
 - **Respectful by design.** Quiet hours (also in the recipient's time zone, with a provider that knows it), the
   recipient cooldown, one text per cart, and "Reply STOP to stop" in every text.
 - **Built on Abandoned Cart.** The same finder, queue, retries and hourly limit as the reminder email; the email keeps
   working as before.
-- **Any provider.** The text goes out through the SMS provider selected in Notifications (e.g.
-  `commercekings/module-notification-twilio`); this module never talks to one itself.
+- **Any provider.** The text goes out through the SMS provider selected in Notifications; this module never
+  talks to one itself.
 
 ## Installation
 
