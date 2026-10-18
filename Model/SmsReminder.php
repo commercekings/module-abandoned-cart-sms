@@ -11,6 +11,7 @@ use CommerceKings\AbandonedCart\Api\RestoreLinkInterface;
 use CommerceKings\Notification\Api\Channel;
 use CommerceKings\Notification\Api\Data\Delivery;
 use CommerceKings\Notification\Api\Data\DeliveryContent;
+use CommerceKings\Notification\Api\RecipientNormalizerInterface;
 use CommerceKings\Notification\Api\SubscriberInterface;
 use CommerceKings\Notification\Api\SubscriptionPermissionInterface;
 use CommerceKings\Notification\Api\SubscriptionRepositoryInterface;
@@ -35,7 +36,8 @@ class SmsReminder implements ReminderTypeInterface
         private readonly SubscriptionRepositoryInterface $subscriptions,
         private readonly CartDataInterface $cartData,
         private readonly RestoreLinkInterface $restoreLinks,
-        private readonly StoreManagerInterface $stores
+        private readonly StoreManagerInterface $stores,
+        private readonly RecipientNormalizerInterface $normalizer
     ) {
     }
 
@@ -85,13 +87,20 @@ class SmsReminder implements ReminderTypeInterface
         return $this->policy;
     }
 
-    /** The number the shopper subscribed for this cart (guest or customer), as Notification stored it (E.164). */
+    /**
+     * The number the shopper subscribed for this cart (guest or customer), in E.164. Notification keeps a contact as it
+     * was first entered and normalizes only its key and the send, so the number is normalized here: the finder's
+     * cooldown check (CooldownInterface::isRecentFor()) needs the form the sender keys it by.
+     */
     public function getRecipient(int $quoteId): ?string
     {
         $subscription = $this->subscriptions->find(self::CODE, $quoteId)[0] ?? null;
         $recipient = $subscription !== null ? $this->subscriptions->getRecipient($subscription) : null;
-        return $recipient !== null && $recipient['channel'] === Channel::SMS && $recipient['recipient'] !== ''
-            ? $recipient['recipient'] : null;
+        if ($recipient === null || $recipient['channel'] !== Channel::SMS) {
+            return null;
+        }
+        $number = $this->normalizer->normalize((string)$recipient['recipient']);
+        return $number !== '' ? $number : null;
     }
 
     public function createDelivery(ReminderMessage $message): Delivery

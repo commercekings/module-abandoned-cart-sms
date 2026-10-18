@@ -6,10 +6,12 @@ built on `@api` and di.xml only. Start with the [README](../README.md).
 ## Parts
 
 - **`Model\SmsReminder`** (`ReminderTypeInterface`, code `cart_reminder_sms`, channel `sms`): its settings
-  (`Model\Config`, `commercekings_abandoned_cart/sms/*`), its consent (a virtual type of Notification's
-  `AddressConsent` for this code), the reminder policy (the shared preference: one per cart), the recipient (the
-  number of the cart's `cart_reminder_sms` subscription) and the text (the configured text with `CartDataInterface`'s
-  facts and `RestoreLinkInterface`'s link – the cart page). Its delivery is a stoppable text of this type.
+  (`Model\Config`, `commercekings_abandoned_cart/sms/*`), its consent (a virtual type of Notification's `AddressConsent`
+  for this code), the reminder policy (the shared preference: one per cart), the recipient (the number of the cart's
+  `cart_reminder_sms` subscription, in E.164 through Notification's `PhoneNormalizer` – a contact is kept as first
+  entered, and the finder's cooldown check needs the sender's form) and the text (the configured text with
+  `CartDataInterface`'s facts and `RestoreLinkInterface`'s link – the cart page). Its delivery is a stoppable text of
+  this type.
 - **di.xml:** the type in Abandoned Cart's `ReminderTypePool`; virtual types of Abandoned Cart's `CartReminder` and
   `CartSubscription` with it as `type`, registered in Notification's `TypePool` and `SubscriptionTypePool`; the cart
   data and the restore link through `\Proxy` (both are built from Notification's subscription type pool, which

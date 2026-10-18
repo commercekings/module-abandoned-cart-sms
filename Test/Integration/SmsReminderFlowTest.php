@@ -111,7 +111,8 @@ class SmsReminderFlowTest extends TestCase
         $config->method('getStoreName')->willReturn('Acme');
         return new SmsReminder($config, $this->om->create(AddressConsent::class, ['typeCode' => SmsReminder::CODE]),
             new OncePerCart(), $this->om->get(SubscriptionRepositoryInterface::class), $this->om->get(CartDataInterface::class),
-            $this->om->get(RestoreLinkInterface::class), $this->om->get(StoreManagerInterface::class));
+            $this->om->get(RestoreLinkInterface::class), $this->om->get(StoreManagerInterface::class),
+            $this->om->get(\CommerceKings\Notification\Model\PhoneNormalizer::class));
     }
 
     private function quietHours(): QuietHoursInterface
@@ -157,7 +158,8 @@ class SmsReminderFlowTest extends TestCase
         $management = $this->om->create(SubscriptionManagement::class, ['types' => $types,
             'permissions' => $this->om->create(PermissionResolver::class, ['types' => $types])]);
         $this->assertTrue($management->subscribeGuest(SmsReminder::CODE, $masked, '+381 60 123 4567'));
-        $this->assertSame(self::NUMBER, $type->getRecipient($this->quoteId), 'stored in E.164');
+        // Notification keeps the contact as entered; the type returns the number in E.164 (the cooldown's key)
+        $this->assertSame(self::NUMBER, $type->getRecipient($this->quoteId));
 
         // idle past the delay
         $db = $this->resource->getConnection();

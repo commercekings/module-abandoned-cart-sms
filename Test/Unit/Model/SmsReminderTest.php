@@ -56,7 +56,8 @@ class SmsReminderTest extends TestCase
         $store->method('getFrontendName')->willReturn('Acme Store View');
         $stores = $this->createStub(StoreManagerInterface::class);
         $stores->method('getStore')->willReturn($store);
-        return new SmsReminder($config, $this->permission, new OncePerCart(), $subscriptions, $cartData, $links, $stores);
+        return new SmsReminder($config, $this->permission, new OncePerCart(), $subscriptions, $cartData, $links, $stores,
+            new \CommerceKings\Notification\Model\PhoneNormalizer());
     }
 
     private function message(): ReminderMessage
@@ -86,6 +87,11 @@ class SmsReminderTest extends TestCase
     public function testTheRecipientIsTheSubscribedNumber(): void
     {
         $this->assertSame('+381601234567', $this->reminder()->getRecipient(42));
+        $this->recipient = ['channel' => 'sms', 'recipient' => '+381 60 123 4567'];
+        $this->assertSame('+381601234567', $this->reminder()->getRecipient(42),
+            'stored as first entered, returned in E.164: the form the cooldown is keyed by');
+        $this->recipient = ['channel' => 'sms', 'recipient' => '060 123 4567'];
+        $this->assertNull($this->reminder()->getRecipient(42), 'not a number the sms channel takes');
         $this->recipient = ['channel' => 'email', 'recipient' => 'a@test.com'];
         $this->assertNull($this->reminder()->getRecipient(42), 'never another channel\'s address');
         $this->recipient = null;

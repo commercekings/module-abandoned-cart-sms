@@ -21,6 +21,9 @@
             <!-- always through a proxy: both are built from Notification's subscription type pool, which builds this -->
             <argument name="cartData" xsi:type="object">CommerceKings\AbandonedCart\Api\CartDataInterface\Proxy</argument>
             <argument name="restoreLinks" xsi:type="object">CommerceKings\AbandonedCart\Api\RestoreLinkInterface\Proxy</argument>
+            <!-- the sms channel's number form (Notification's normalizer for sms); a project that replaces it there
+                 sets the same one here -->
+            <argument name="normalizer" xsi:type="object">CommerceKings\Notification\Model\PhoneNormalizer</argument>
         </arguments>
     </type>
     <!-- its notification type (Notification's consumer) and subscription type (who may sign up a cart) -->
