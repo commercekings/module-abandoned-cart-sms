@@ -54,7 +54,7 @@ The phone field and the checkbox appear at checkout only when all three are in p
 | Maximum texts per hour (global) | 0 – no limit; set your provider's |
 | Text (store view) | `{{store}}: you left something in your cart. Complete your order: {{link}} Reply STOP to stop` |
 
-Placeholders: `{{store}}` (Store Information name, else the store view), `{{name}}` (the first name, may be empty),
+Placeholders: `{{store}}` (Store Information name, else the store's name), `{{name}}` (the first name, may be empty),
 `{{product}}` (the first product, at most 40 characters), `{{total}}`, `{{link}}` (the cart page). One text holds 160
 characters, or 70 when it has an emoji or a character outside the basic set.
 

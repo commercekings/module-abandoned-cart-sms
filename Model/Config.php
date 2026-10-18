@@ -45,7 +45,7 @@ class Config
         return (string)$this->scopeConfig->getValue('general/country/default', ScopeInterface::SCOPE_STORE, $storeId);
     }
 
-    /** The brand in the text: the store's name (Store Information), else the store view's name. */
+    /** The brand in the text: the store view's Store Information name; SmsReminder falls back to the frontend name. */
     public function getStoreName(int $storeId): string
     {
         return trim((string)$this->scopeConfig->getValue('general/store_information/name', ScopeInterface::SCOPE_STORE,

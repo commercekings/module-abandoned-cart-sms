@@ -15,6 +15,7 @@ use CommerceKings\Notification\Api\RecipientNormalizerInterface;
 use CommerceKings\Notification\Api\SubscriberInterface;
 use CommerceKings\Notification\Api\SubscriptionPermissionInterface;
 use CommerceKings\Notification\Api\SubscriptionRepositoryInterface;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
@@ -131,7 +132,11 @@ class SmsReminder implements ReminderTypeInterface
     private function storeName(int $storeId): string
     {
         $name = $this->config->getStoreName($storeId);
-        return $name !== '' ? $name : (string)$this->stores->getStore($storeId)->getFrontendName();
+        if ($name !== '') {
+            return $name;
+        }
+        $store = $this->stores->getStore($storeId);
+        return (string)($store instanceof Store ? $store->getFrontendName() : $store->getName());
     }
 
     /** One line, at most PRODUCT_LENGTH characters ("..." - GSM-7, an ellipsis character would make it Unicode). */

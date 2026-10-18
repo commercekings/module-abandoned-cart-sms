@@ -53,7 +53,7 @@ class SmsReminderTest extends TestCase
             return 'https://shop.test/checkout/cart/';
         });
         $store = $this->createStub(Store::class);
-        $store->method('getFrontendName')->willReturn('Acme Store View');
+        $store->method('getFrontendName')->willReturn('Main Website Store');
         $stores = $this->createStub(StoreManagerInterface::class);
         $stores->method('getStore')->willReturn($store);
         return new SmsReminder($config, $this->permission, new OncePerCart(), $subscriptions, $cartData, $links, $stores,
@@ -124,14 +124,14 @@ class SmsReminderTest extends TestCase
         $this->assertSame('Hi, your cart at Acme is waiting: https://shop.test/checkout/cart/', $this->text());
     }
 
-    public function testALongProductNameIsCutAndTheStoreViewNameIsTheFallback(): void
+    public function testALongProductNameIsCutAndTheFrontendNameIsTheFallback(): void
     {
         $this->storeName = '';
         $this->items[0]['name'] = "A very long product name that would\nnever fit in a single text message";
         $this->text = '{{store}}: {{product}}';
         $text = $this->text();
-        $this->assertSame('Acme Store View: A very long product name that would n...', $text);
-        $this->assertSame(40, mb_strlen(substr($text, strlen('Acme Store View: '))), 'at most 40 characters, GSM-7 dots');
+        $this->assertSame('Main Website Store: A very long product name that would n...', $text);
+        $this->assertSame(40, mb_strlen(substr($text, strlen('Main Website Store: '))), 'at most 40 characters, GSM-7 dots');
     }
 
     public function testAnEmptyCartListLeavesTheProductOut(): void
