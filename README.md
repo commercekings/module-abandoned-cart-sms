@@ -71,8 +71,9 @@ and ends the sign-up. A changed number moves the consent. Customers who are sign
 
 - **US:** register your 10DLC brand and campaign (or toll-free verification) with your provider before sending; the
   checkbox text is the opt-in language of your campaign.
-- **Quiet hours:** turn them on for SMS (Notifications > Quiet hours); US state laws such as Florida's FTSA go by the
-  recipient's local time – use a provider module with a recipient-time-zone zone provider.
+- **Quiet hours:** on by default for SMS (Notifications > Quiet hours, 20:00–08:00) – check the window; US state laws
+  such as Florida's FTSA go by the recipient's local time – use a provider module with a recipient-time-zone zone
+  provider.
 - **Opt-in confirmation:** some rules want a confirmation text after the first sign-up of a number; your provider
   module sends it (Notification's subscription-saved event).
 - **Protect against SMS pumping.** The public sign-up endpoints can be abused to trigger paid texts (e.g. opt-in
