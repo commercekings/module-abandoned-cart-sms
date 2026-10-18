@@ -1,0 +1,32 @@
+<?php
+/**
+ * Checkout: the phone field for text reminders and Notification's consent checkbox for that number (child block
+ * "ck.abandoned.cart.sms.consent"). Nothing is rendered unless text reminders are on, an SMS provider is installed and
+ * the store view has a checkbox text.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+/** @var \CommerceKings\AbandonedCartSms\ViewModel\Checkout $viewModel */
+$viewModel = $block->getData('view_model');
+if (!$viewModel->isAvailable()) {
+    return;
+}
+?>
+<div class="ck-sms-reminder fieldset"
+     data-mage-init="<?= $escaper->escapeHtmlAttr(json_encode(['CommerceKings_AbandonedCartSms/js/sms-phone' => $viewModel->getOptions()])) ?>">
+    <div class="field">
+        <label class="label" for="ck-sms-phone-input">
+            <span><?= $escaper->escapeHtml(__('Mobile number for a cart reminder')) ?></span>
+        </label>
+        <div class="control">
+            <input type="tel" class="input-text ck-sms-phone-input" id="ck-sms-phone-input" autocomplete="tel"
+                   placeholder="<?= $escaper->escapeHtmlAttr(__('e.g. +44 7700 900123')) ?>"/>
+            <div class="mage-error ck-sms-phone-error" style="display: none;">
+                <?= $escaper->escapeHtml(__('Enter the number with its country code, e.g. +44 7700 900123.')) ?>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" class="ck-sms-phone-number" id="ck-sms-phone-number"/>
+    <?= $block->getChildHtml('ck.abandoned.cart.sms.consent') ?>
+</div>

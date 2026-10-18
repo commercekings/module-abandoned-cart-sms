@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- the text reminder next to Abandoned Cart's email (its docs/extending.md): the finder queues it -->
+    <type name="CommerceKings\AbandonedCart\Model\ReminderTypePool">
+        <arguments>
+            <argument name="types" xsi:type="array">
+                <item name="cart_reminder_sms" xsi:type="object">CommerceKings\AbandonedCartSms\Model\SmsReminder</item>
+            </argument>
+        </arguments>
+    </type>
+    <!-- its consent: a checkbox for the number (Notification's address consent) -->
+    <virtualType name="CommerceKingsAbandonedCartSmsConsent" type="CommerceKings\Notification\Model\AddressConsent">
+        <arguments>
+            <argument name="typeCode" xsi:type="string">cart_reminder_sms</argument>
+        </arguments>
+    </virtualType>
+    <type name="CommerceKings\AbandonedCartSms\Model\SmsReminder">
+        <arguments>
+            <argument name="permission" xsi:type="object">CommerceKingsAbandonedCartSmsConsent</argument>
+            <!-- always through a proxy: both are built from Notification's subscription type pool, which builds this -->
+            <argument name="cartData" xsi:type="object">CommerceKings\AbandonedCart\Api\CartDataInterface\Proxy</argument>
+            <argument name="restoreLinks" xsi:type="object">CommerceKings\AbandonedCart\Api\RestoreLinkInterface\Proxy</argument>
+        </arguments>
+    </type>
+    <!-- its notification type (Notification's consumer) and subscription type (who may sign up a cart) -->
+    <virtualType name="CommerceKingsAbandonedCartSmsReminder" type="CommerceKings\AbandonedCart\Model\Notification\CartReminder">
+        <arguments>
+            <argument name="type" xsi:type="object">CommerceKings\AbandonedCartSms\Model\SmsReminder</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="CommerceKingsAbandonedCartSmsSubscription" type="CommerceKings\AbandonedCart\Model\Notification\CartSubscription">
+        <arguments>
+            <argument name="type" xsi:type="object">CommerceKings\AbandonedCartSms\Model\SmsReminder</argument>
+        </arguments>
+    </virtualType>
+    <type name="CommerceKings\Notification\Model\TypePool">
+        <arguments>
+            <argument name="types" xsi:type="array">
+                <item name="cart_reminder_sms" xsi:type="object">CommerceKingsAbandonedCartSmsReminder</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="CommerceKings\Notification\Model\SubscriptionTypePool">
+        <arguments>
+            <argument name="types" xsi:type="array">
+                <item name="cart_reminder_sms" xsi:type="object">CommerceKingsAbandonedCartSmsSubscription</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

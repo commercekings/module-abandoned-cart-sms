@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- below the checkout: the consent widget finds the number when it is entered (docs/how-it-works.md) -->
+        <referenceContainer name="content">
+            <block class="Magento\Framework\View\Element\Template" name="ck.abandoned.cart.sms"
+                   template="CommerceKings_AbandonedCartSms::checkout/sms.phtml" after="-">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">CommerceKings\AbandonedCartSms\ViewModel\Checkout</argument>
+                </arguments>
+                <block class="Magento\Framework\View\Element\Template" name="ck.abandoned.cart.sms.consent"
+                       template="CommerceKings_Notification::address-consent.phtml">
+                    <arguments>
+                        <argument name="view_model" xsi:type="object">CommerceKings\Notification\ViewModel\AddressConsent</argument>
+                        <argument name="type" xsi:type="string">cart_reminder_sms</argument>
+                        <argument name="channel" xsi:type="string">sms</argument>
+                        <argument name="phone" xsi:type="string">#ck-sms-phone-number</argument>
+                    </arguments>
+                </block>
+            </block>
+        </referenceContainer>
+    </body>
+</page>
