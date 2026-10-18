@@ -17,10 +17,10 @@ The reminder email is built into Abandoned Cart; this module adds the text.
 
 - **Consent per number.** A checkbox next to the number, stored with the exact wording, the time and a hashed IP –
   the evidence US carriers (10DLC) and the GDPR ask for. A STOP reply ends it.
-- **Respectful by design.** Quiet hours (also in the recipient's time zone, with a provider that knows it), the
-  recipient cooldown, one text per cart, and "Reply STOP to stop" in every text.
-- **Built on Abandoned Cart.** The same finder, queue, retries and hourly limit as the reminder email; the email keeps
-  working as before.
+- **Respectful by design.** Quiet hours (on by default; also in the recipient's time zone, with a provider that knows
+  it), the recipient cooldown, one text per cart, and "Reply STOP to stop" in every text.
+- **Built on Abandoned Cart.** The same finder, queue, retries and hourly limit as the reminder email; the email
+  reminder is unaffected.
 - **Any provider.** The text goes out through the SMS provider selected in Notifications; this module never
   talks to one itself.
 
@@ -28,15 +28,17 @@ The reminder email is built into Abandoned Cart; this module adds the text.
 
 ```sh
 composer require commercekings/module-abandoned-cart-sms commercekings/module-notification-twilio
+# or, for Infobip: composer require commercekings/module-abandoned-cart-sms commercekings/module-notification-infobip
 bin/magento setup:upgrade
 ```
 
-Any module that provides an `sms` provider for CommerceKings Notification works instead of the Twilio one. Without
-one, nothing changes at checkout.
+Install one provider module per channel. Any module that provides an `sms` provider for CommerceKings Notification
+works. Without one, nothing changes at checkout.
 
 Then:
 
-1. **Notifications > Delivery:** set up your SMS provider (credentials, sender).
+1. **Your provider's group** (e.g. *Notifications > Twilio* or *Notifications > Infobip*): credentials and sender. With
+   several SMS providers, select one under *Notifications > Delivery* – but install only one per channel.
 2. **Notifications > Consent for an address > Checkbox text: text messages:** the checkbox wording (a default is
    set). Name your store, what you send, how often and how to stop.
 3. **Abandoned Cart > Text message reminders:** *Enabled* Yes, the delay, the hourly limit and the text.
@@ -74,8 +76,8 @@ and ends the sign-up. A changed number moves the consent. Customers who are sign
 - **Quiet hours:** on by default for SMS (Notifications > Quiet hours, 20:00–08:00) – check the window; US state laws
   such as Florida's FTSA go by the recipient's local time – use a provider module with a recipient-time-zone zone
   provider.
-- **Opt-in confirmation:** some rules want a confirmation text after the first sign-up of a number; your provider
-  module sends it (Notification's subscription-saved event).
+- **Opt-in confirmation:** some rules want a confirmation text after the first sign-up of a number; the Twilio and
+  Infobip modules send one (on by default; in their settings).
 - **Protect against SMS pumping.** The public sign-up endpoints can be abused to trigger paid texts (e.g. opt-in
   confirmations to premium-rate numbers) – plan for it: limit them with [module-rate-limit](https://github.com/commercekings/module-rate-limit) and turn on your
   provider's fraud protection (Twilio: Geo Permissions and SMS Pumping Protection; Infobip: check your account for
@@ -86,7 +88,8 @@ and ends the sign-up. A changed number moves the consent. Customers who are sign
 
 - The link opens the cart page (the shopper's session or account cart): a phone cannot prove it is the browser the
   cart was left in, so there is no cross-device restore for texts.
-- Luma checkout only. The block sits below the checkout; Hyvä and headless storefronts use the framework-free
+- Luma checkout only (also in Hyvä themes using Hyvä's Luma checkout fallback); Hyvä Checkout and headless are not
+  supported. The block sits below the checkout; a custom checkout can build on the framework-free
   `CommerceKings_AbandonedCartSms/js/sms-phone-core` and Notification's REST routes.
 - National numbers are converted with the store's default country and a calling-code table, not a phone library;
   shoppers abroad type the `+` form.
