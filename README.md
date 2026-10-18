@@ -75,6 +75,10 @@ and ends the sign-up. A changed number moves the consent. Customers who are sign
   recipient's local time – use a provider module with a recipient-time-zone zone provider.
 - **Opt-in confirmation:** some rules want a confirmation text after the first sign-up of a number; your provider
   module sends it (Notification's subscription-saved event).
+- **Protect against SMS pumping.** The public sign-up endpoints can be abused to trigger paid texts (e.g. opt-in
+  confirmations to premium-rate numbers) – plan for it: limit them with [module-rate-limit](https://github.com/commercekings/module-rate-limit) and turn on your
+  provider's fraud protection (Twilio: Geo Permissions and SMS Pumping Protection; Infobip: check your account for
+  destination restrictions and fraud protection).
 - Send a test order with your own number and check the text, the link and a STOP reply.
 
 ## Limitations
