@@ -1,6 +1,8 @@
-# Abandoned Cart SMS<a href="https://commercekings.net"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/commercekings/module-abandoned-cart/main/.github/commercekings-dark.svg"><img align="right" width="152" src="https://raw.githubusercontent.com/commercekings/module-abandoned-cart/main/.github/commercekings-light.svg" alt="Built by CommerceKings. Ready to sell more? Talk to us"></picture></a>
+# Abandoned Cart SMS<a href="https://commercekings.net"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/commercekings/module-abandoned-cart-sms/main/.github/commercekings-dark.svg"><img align="right" width="152" src="https://raw.githubusercontent.com/commercekings/module-abandoned-cart-sms/main/.github/commercekings-light.svg" alt="Built by CommerceKings. Ready to sell more? Talk to us"></picture></a>
 
 Works with Magento 2.4.4+ · Luma checkout · PHP 8.1–8.5 · any SMS provider module for CommerceKings Notification
+
+[![License](https://badgen.net/github/license/commercekings/module-abandoned-cart-sms)](LICENSE) [![Release](https://badgen.net/github/release/commercekings/module-abandoned-cart-sms)](https://github.com/commercekings/module-abandoned-cart-sms/releases) [![Checks](https://github.com/commercekings/module-abandoned-cart-sms/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/commercekings/module-abandoned-cart-sms/actions/workflows/checks.yml)
 
 **A text for every abandoned cart, next to the email.** The shopper gives a mobile number at checkout and ticks the
 checkbox for it; when the cart is left, one text brings them back.
