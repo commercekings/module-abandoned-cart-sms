@@ -1,7 +1,8 @@
 /**
- * Text message reminders at checkout, framework-free: toE164() turns what the shopper typed into the number form
- * Notification stores ("+381601234567"), subscribe() signs the cart up for the text reminder. Any storefront (Luma,
- * Hyvä, headless) can build on it; Notification checks the number again on the server.
+ * Text message reminders at checkout, framework-free: toE164() turns a typed number into the form Notification stores
+ * ("+381601234567"), numberFor() picks the number the reminder goes to (the shipping phone, or a different one),
+ * display() shows it, subscribe() signs the cart up. Luma's checkout uses it (js/view/sms-consent); a custom checkout
+ * can build on it. Notification checks the number again on the server.
  */
 define([], function () {
     'use strict';
@@ -71,6 +72,46 @@ define([], function () {
         return E164.test(number) ? number : '';
     }
 
+    /** Calling codes, for display(): the code a number starts with. */
+    var CALLING = {};
+    Object.keys(CODES).forEach(function (country) { CALLING[CODES[country]] = true; });
+
+    /**
+     * The number the text reminder goes to: the shipping address's phone, read in the address's country (else the
+     * store's), or the different number the shopper typed instead (e.g. a gift recipient's phone), read the same way.
+     *
+     * @param {Object} state addressPhone, addressCountry (ISO 3166), useCustom (boolean), custom, defaultCountry
+     * @return {{number: string, source: string}} number in E.164, '' when there is none; source 'address' or 'custom'
+     */
+    function numberFor(state) {
+        var country = state.addressCountry || state.defaultCountry || '';
+
+        return state.useCustom
+            ? {number: toE164(state.custom, country), source: 'custom'}
+            : {number: toE164(state.addressPhone, country), source: 'address'};
+    }
+
+    /**
+     * A number in E.164 as the shopper reads it, the calling code apart: "+381 601234567"; '' for anything else.
+     *
+     * @param {string} number
+     * @return {string}
+     */
+    function display(number) {
+        var digits;
+
+        if (!E164.test(String(number || ''))) {
+            return '';
+        }
+        digits = number.slice(1);
+        for (var length = 3; length >= 1; length--) {
+            if (CALLING[digits.slice(0, length)]) {
+                return '+' + digits.slice(0, length) + ' ' + digits.slice(length);
+            }
+        }
+        return number;
+    }
+
     /**
      * Signs the cart up for the text reminder (Notification's subscribe route): the guest's masked cart id, or the
      * customer's quote id with /mine; the number must already have its consent (the checkbox).
@@ -103,5 +144,5 @@ define([], function () {
         });
     }
 
-    return {toE164: toE164, subscribe: subscribe, codes: CODES};
+    return {toE164: toE164, numberFor: numberFor, display: display, subscribe: subscribe, codes: CODES};
 });

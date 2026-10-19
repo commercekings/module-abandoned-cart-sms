@@ -8,7 +8,7 @@ const vm = require('node:vm');
 function core() {
     const source = fs.readFileSync(path.join(__dirname, '../../view/frontend/web/js/sms-phone-core.js'), 'utf8');
     let module;
-    vm.runInContext(source, vm.createContext({define: (names, factory) => { module = factory(); }, JSON, Promise, String}));
+    vm.runInContext(source, vm.createContext({define: (names, factory) => { module = factory(); }, JSON, Promise, String, Object}));
     return module;
 }
 
@@ -60,6 +60,48 @@ test('every calling code is digits and none starts with 0', () => {
     for (const [country, code] of Object.entries(core().codes)) {
         assert.match(country, /^[A-Z]{2}$/);
         assert.match(code, /^[1-9][0-9]{0,2}$/, country);
+    }
+});
+
+test('the shipping phone is the number, read in the address\'s country, else the store\'s', () => {
+    const {numberFor} = core();
+    assert.deepEqual({...numberFor({addressPhone: '060 123 4567', addressCountry: 'RS', defaultCountry: 'DE'})},
+        {number: '+381601234567', source: 'address'}, 'a national number of the shipping country');
+    assert.equal(numberFor({addressPhone: '0151 23456789', addressCountry: '', defaultCountry: 'DE'}).number,
+        '+4915123456789', 'no country yet: the store\'s');
+    assert.equal(numberFor({addressPhone: '+44 7700 900123', addressCountry: 'RS', defaultCountry: 'DE'}).number,
+        '+447700900123', 'an international number stays');
+    assert.equal(numberFor({addressPhone: '(212) 555-0100', addressCountry: 'US'}).number, '+12125550100');
+});
+
+test('no usable shipping phone gives no number', () => {
+    const {numberFor} = core();
+    for (const phone of ['', '   ', '123', 'call me', undefined]) {
+        assert.equal(numberFor({addressPhone: phone, addressCountry: 'RS', defaultCountry: 'RS'}).number, '',
+            JSON.stringify(phone));
+    }
+});
+
+test('a different number replaces the shipping phone, read the same way', () => {
+    const {numberFor} = core();
+    const state = {addressPhone: '060 123 4567', addressCountry: 'RS', defaultCountry: 'DE', useCustom: true};
+    assert.deepEqual({...numberFor({...state, custom: '064 765 4321'})}, {number: '+381647654321', source: 'custom'},
+        'e.g. a gift recipient\'s phone, national in the shipping country');
+    assert.equal(numberFor({...state, custom: '+43 664 1234567'}).number, '+436641234567');
+    assert.equal(numberFor({...state, custom: ''}).number, '', 'nothing typed yet: no number, not the shipping phone');
+    assert.equal(numberFor({...state, custom: 'abc'}).number, '');
+    assert.equal(numberFor({...state, useCustom: false, custom: '064 765 4321'}).number, '+381601234567',
+        'switched back: the shipping phone again');
+});
+
+test('display shows the calling code apart, and nothing for a non-number', () => {
+    const {display} = core();
+    assert.equal(display('+381601234567'), '+381 601234567');
+    assert.equal(display('+12125550100'), '+1 2125550100');
+    assert.equal(display('+447700900123'), '+44 7700900123');
+    assert.equal(display('+4915123456789'), '+49 15123456789');
+    for (const value of ['', '060 123 4567', '+0123456789', null]) {
+        assert.equal(display(value), '', JSON.stringify(value));
     }
 });
 

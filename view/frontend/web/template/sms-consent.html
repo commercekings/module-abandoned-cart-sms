@@ -1,0 +1,24 @@
+<!-- the text reminder checkbox under the shipping phone (js/view/sms-consent) -->
+<div class="field choice ck-sms-consent" data-bind="afterRender: initConsent">
+    <input type="hidden" data-bind="attr: {id: inputId}"/>
+    <div data-bind="visible: number">
+        <input type="checkbox" class="checkbox" data-bind="attr: {id: boxId}"/>
+        <label class="label" data-bind="attr: {for: boxId}">
+            <span data-bind="text: consent.wording"></span>
+        </label>
+        <div class="note ck-sms-consent-number">
+            <span data-bind="text: $t('Text me at %1 about my cart.').replace('%1', shown())"></span>
+        </div>
+    </div>
+    <button type="button" class="action action-auth-toggle ck-sms-consent-toggle" data-bind="click: toggleCustom">
+        <span data-bind="text: useCustom() ? $t('Use the shipping phone') : $t('Use a different number')"></span>
+    </button>
+    <div class="control" data-bind="visible: useCustom">
+        <input type="tel" class="input-text" autocomplete="tel"
+               data-bind="value: custom, valueUpdate: 'blur', attr: {id: inputId + '-custom', 'aria-label': $t('Mobile number for text reminders'),
+                   placeholder: $t('e.g. +44 7700 900123')}"/>
+        <div class="mage-error" data-bind="visible: customInvalid">
+            <span data-bind="i18n: 'Enter the number with its country code, e.g. +44 7700 900123.'"></span>
+        </div>
+    </div>
+</div>

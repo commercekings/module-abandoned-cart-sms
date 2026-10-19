@@ -4,8 +4,8 @@ Works with Magento 2.4.4+ · Luma checkout · PHP 8.1–8.5 · any SMS provider 
 
 [![License](https://badgen.net/github/license/commercekings/module-abandoned-cart-sms)](LICENSE) [![Release](https://badgen.net/github/release/commercekings/module-abandoned-cart-sms)](https://github.com/commercekings/module-abandoned-cart-sms/releases) [![Checks](https://github.com/commercekings/module-abandoned-cart-sms/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/commercekings/module-abandoned-cart-sms/actions/workflows/checks.yml)
 
-**A text for every abandoned cart, next to the email.** The shopper gives a mobile number at checkout and ticks the
-checkbox for it; when the cart is left, one text brings them back.
+**A text for every abandoned cart, next to the email.** The shopper ticks the box under their shipping phone at
+checkout; when the cart is left, one text brings them back.
 
 The reminder email is built into Abandoned Cart; this module adds the text.
 **Works together with:**
@@ -43,7 +43,7 @@ Then:
    set). Name your store, what you send, how often and how to stop.
 3. **Abandoned Cart > Text message reminders:** *Enabled* Yes, the delay, the hourly limit and the text.
 
-The phone field and the checkbox appear at checkout only when all three are in place.
+The checkbox appears at checkout only when all three are in place.
 
 ## Settings
 
@@ -64,10 +64,12 @@ Quiet hours, the recipient cooldown and STOP replies are Notification's settings
 
 ## At checkout
 
-Below the checkout: *Mobile number for a cart reminder* and the checkbox. The shopper types the number with its
-country code (`+44 7700 900123`) or as a national number of the store's default country (`07700 900123`); it is
-stored in E.164. Ticking the box records the consent for that number and signs the cart up; unticking withdraws it
-and ends the sign-up. A changed number moves the consent. Customers who are signed in use the same field.
+Right under the shipping phone: the checkbox, and the number it is for – *Text me at +381 601234567 about my cart.*
+The number is the shipping phone (the address form's, or the selected saved address's for a signed-in customer),
+read with the address's country, so a national number (`060 123 4567`) works; it is stored in E.164. *Use a different
+number* takes another one (e.g. when the parcel goes to someone else), with its country code or as a national number
+of the shipping country. Ticking the box records the consent for that number and signs the cart up; unticking
+withdraws it and ends the sign-up. A changed number moves the consent; without a number the box is hidden.
 
 ## Before going live
 
@@ -89,7 +91,7 @@ and ends the sign-up. A changed number moves the consent. Customers who are sign
 - The link opens the cart page (the shopper's session or account cart): a phone cannot prove it is the browser the
   cart was left in, so there is no cross-device restore for texts.
 - Luma checkout only (also in Hyvä themes using Hyvä's Luma checkout fallback); Hyvä Checkout and headless are not
-  supported. The block sits below the checkout; a custom checkout can build on the framework-free
+  supported. The checkbox is a component of Luma's shipping step; a custom checkout can build on the framework-free
   `CommerceKings_AbandonedCartSms/js/sms-phone-core` and Notification's REST routes.
 - National numbers are converted with the store's default country and a calling-code table, not a phone library;
   shoppers abroad type the `+` form.

@@ -10,10 +10,10 @@ with reminder types and `commercekings/module-notification`; PHP 8.1–8.5.
   retries, policy and its own hourly limit and send history. Built on `@api` and di.xml only.
 - **Consent per number:** Notification's address consent (a checkbox stored with the wording, time, hashed IP and the
   number as a keyed hash) for this type; a STOP reply withdraws it.
-- **Checkout (Luma):** *Mobile number for a cart reminder* and the checkbox below the checkout, only when the
-  reminders are on, an SMS provider is installed and the store view has a checkbox text. National numbers get the
-  store's default country code; the number is stored in E.164. The framework-free `js/sms-phone-core` is for other
-  storefronts.
+- **Checkout (Luma):** the checkbox right under the shipping phone (a jsLayout child; after the saved addresses for a
+  customer who has them), for the shipping phone in E.164 with the address's country – *Text me at … about my cart* –
+  or a different number. Only when the reminders are on, an SMS provider is installed and the store view has a
+  checkbox text. A custom checkout can build on the framework-free `js/sms-phone-core`.
 - **Settings** (*Abandoned Cart > Text message reminders*): enabled, delay, texts per hour and the text per store view
   with `{{store}}`, `{{name}}`, `{{product}}`, `{{total}}` and `{{link}}` (the cart page); the default names the store
   and ends with "Reply STOP to stop".

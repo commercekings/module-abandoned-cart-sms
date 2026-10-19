@@ -14,6 +14,7 @@
         "commercekings/module-abandoned-cart": "^0.1",
         "commercekings/module-notification": "^0.1",
         "magento/module-checkout": "^100.4",
+        "magento/module-customer": "^103.0",
         "magento/module-quote": "^101.2",
         "magento/module-store": "^101.1"
     },

@@ -13,8 +13,8 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * The phone field and checkbox at checkout: shown only where text reminders are on, an SMS provider is installed and
- * the store view has a checkbox text (Notifications > Consent for an address) - otherwise nothing is rendered.
+ * Whether the checkout offers text reminders (Model\Checkout\SmsConsentLayout): only where they are on, an SMS provider
+ * is installed and the store view has a checkbox text (Notifications > Consent for an address).
  */
 class Checkout implements ArgumentInterface
 {
@@ -45,7 +45,9 @@ class Checkout implements ArgumentInterface
         return SmsReminder::CODE;
     }
 
-    /** @return array{type: string, country: string, urls: array{guest: string, mine: string}} for sms-phone.js */
+    /**
+     * @return array{type: string, country: string, urls: array{guest: string, mine: string}} for js/view/sms-consent
+     */
     public function getOptions(): array
     {
         $base = rtrim($this->url->getBaseUrl(['_type' => UrlInterface::URL_TYPE_WEB]), '/') . '/rest/'
