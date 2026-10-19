@@ -22,13 +22,15 @@ built on `@api` and di.xml only. Start with the [README](../README.md).
   shipping address's `telephone` (its `sortOrder` + 1); for a signed-in customer with saved addresses – the form is then
   only the "New Address" pop-up – it goes after the address list (`address-list-additional-addresses`). The number is
   the shipping phone (the form's `checkoutProvider` data, or `quote.shippingAddress()` for a saved address) in E.164
-  with the address's country (`js/sms-phone-core`: `numberFor()`); the label is the configured consent wording – the
-  evidence – with the number in place of `{{number}}` (Notification's `address-consent-core`: `renderWording()`); a
-  phone that cannot take texts gets no checkbox. It goes into a hidden field, the phone of Notification's address
-  consent widget (`CommerceKings_Notification/js/address-consent`): checking records the consent, unchecking withdraws
-  it, a changed number moves it, a failed withdrawal checks the box again; no number unchecks it. When the consent is
-  recorded (`ckAddressConsent:recorded`), the cart is signed up: guests with the masked cart id, customers with the
-  quote id and `/mine`.
+  with the address's country (`js/sms-phone-core`: `numberFor()`), taken when the phone field loses focus (its
+  `focused`), on a country change and when another saved address is selected – never per keystroke; the label is the
+  configured consent wording – the evidence – with the number in place of `{{number}}` (Notification's
+  `address-consent-core`: `renderWording()`); a phone that cannot take texts gets no checkbox. It goes into a hidden
+  field, the phone of Notification's address consent widget (`CommerceKings_Notification/js/address-consent`): checking
+  records the consent, unchecking withdraws it, a failed withdrawal checks the box again. A changed number, or none,
+  unchecks the box first, so the consent of the previous number is withdrawn and the new number is only recorded on a
+  new tick. When the consent is recorded (`ckAddressConsent:recorded`), the cart is signed up: guests with the masked
+  cart id, customers with the quote id and `/mine`.
 
 ## Flow
 
@@ -51,10 +53,12 @@ get both, each once.
   view model and layout processor (under the telephone, after saved addresses, nothing when unavailable), and the wiring
   – every Abandoned Cart and Notification class named in PHP or di.xml is `@api`, and the cart data and restore link
   come through proxies.
-- `Test/JavaScript`: E.164 conversion (international, national with trunk prefix, North America, Italy, refusals), the
+- `Test/JavaScript`: E.164 conversion (international, national with trunk prefix, a "(0)" after the country code, a
+  country code without + or 00, North America, Italy, mobile lengths per country so partial numbers fail, refusals), the
   number from the shipping phone (`numberFor()`), the subscribe request, and the checkout component built the way
-  Magento's layout builder does it (the type arrives, the number field is bound in the template, a changed phone moves
-  the consent, no checkbox without a usable phone).
+  Magento's layout builder does it, with Notification's real consent widget (the type arrives, the number field is bound
+  in the template, nothing per keystroke, a changed number or country unticks and withdraws without recording the new
+  one, no checkbox without a usable phone).
 - `Test/Integration/SmsReminderFlowTest.php` (a Magento development database): guest consent and sign-up through
   Notification, the finder, and one text through a fake SMS provider – once per cart, beside the email's history.
 

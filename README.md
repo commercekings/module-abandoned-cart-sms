@@ -69,9 +69,11 @@ with the number in place of `{{number}}` – by default *Yes, text me offers and
 frequency varies; msg & data rates may apply. Reply STOP to stop.* The configured text is what is stored as the
 consent's evidence, with the number. The number is the shipping phone (the address form's, or the selected saved
 address's for a signed-in customer), read with the address's country, so a national number (`060 123 4567`) works; it is
-stored in E.164. A phone that cannot take texts (empty, too short, not a number) gets no checkbox. Ticking the box
-records the consent for that number and signs the cart up; unticking withdraws it and ends the sign-up. A changed
-shipping phone moves the consent.
+stored in E.164. A phone that cannot take texts (empty, shorter than a mobile number of its country, not a number) gets
+no checkbox. Ticking the box records the consent for that number and signs the cart up; unticking withdraws it and ends
+the sign-up. The number is taken when the shopper leaves the phone field, changes the country or picks another saved
+address – never per keystroke. If it changes while the box is ticked, the consent is withdrawn and the box unticked: a
+new number gets a consent only when the shopper ticks again.
 
 ## Before going live
 

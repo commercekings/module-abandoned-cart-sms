@@ -35,8 +35,26 @@ define([], function () {
         ZA: '27', ZM: '260', ZW: '263'
     };
 
-    /** Countries whose national numbers keep their leading 0 after the calling code (Italy, San Marino, Vatican). */
-    var KEEP_ZERO = {IT: true, SM: true, VA: true};
+    /** Calling codes whose national numbers keep their leading 0 (Italy and the Vatican, San Marino). */
+    var KEEP_ZERO = {39: true, 378: true};
+
+    /**
+     * Mobile national number lengths (without the trunk 0; libphonenumber's metadata): texts go to mobiles, so a
+     * shorter number - a landline, or one still being typed - gets no checkbox. Countries not listed: MIN_NATIONAL.
+     */
+    var LENGTHS = {
+        AL: [9, 9], AT: [7, 13], AU: [9, 9], BA: [8, 9], BE: [9, 9], BG: [8, 9], CA: [10, 10], CH: [9, 9],
+        CZ: [9, 9], DE: [10, 11], DK: [8, 8], EE: [7, 8], ES: [9, 9], FI: [6, 10], FR: [9, 9], GB: [10, 10],
+        GR: [10, 10], HR: [8, 9], HU: [9, 9], IE: [9, 9], IT: [9, 10], LI: [7, 9], LT: [8, 8], LU: [9, 9],
+        LV: [8, 8], ME: [8, 8], MK: [8, 8], NL: [9, 11], NO: [8, 8], NZ: [8, 10], PL: [9, 9], PT: [9, 9],
+        RO: [9, 9], RS: [8, 10], SE: [9, 9], SI: [8, 8], SK: [9, 9], TR: [10, 10], UA: [9, 9], US: [10, 10],
+        XK: [8, 8]
+    };
+    var MIN_NATIONAL = 7;
+
+    /** The calling codes (prefix-free: no code is the start of another). */
+    var CALLING = {};
+    Object.keys(CODES).forEach(function (country) { CALLING[CODES[country]] = true; });
 
     /** The same rule as Notification's PhoneNormalizer: "+", a country code not starting with 0, 8-15 digits. */
     var E164 = /^\+[1-9][0-9]{7,14}$/;
@@ -48,28 +66,80 @@ define([], function () {
      * @return {string} the number in E.164, '' when it cannot be one
      */
     function toE164(input, country) {
-        var raw = String(input || '').trim().replace(/[\s\-.()\/]+/g, ''),
-            number;
+        // "+381 (0) 61 …": the trunk 0 some write in brackets after the country code is not dialled
+        var raw = String(input || '').trim().replace(/^((?:\+|00)[\s\-.]*[1-9][0-9]{0,2})[\s\-.]*\(0\)/, '$1')
+                .replace(/[\s\-.()\/]+/g, ''),
+            digits;
 
+        country = String(country || '').toUpperCase();
         if (/^\+/.test(raw)) {
-            number = raw;
+            digits = raw.slice(1);
         } else if (/^00/.test(raw)) {
-            number = '+' + raw.slice(2);
+            digits = raw.slice(2);
         } else {
-            var code = CODES[String(country || '').toUpperCase()],
-                national = raw;
-
-            if (!code || !/^[0-9]+$/.test(national)) {
-                return '';
-            }
-            if (code === '1' && national.length === 11 && national.charAt(0) === '1') {
-                national = national.slice(1); // a NANP number typed with its trunk 1
-            } else if (!KEEP_ZERO[String(country).toUpperCase()]) {
-                national = national.replace(/^0/, ''); // the national trunk prefix
-            }
-            number = '+' + code + national;
+            digits = withCountryCode(raw, country);
         }
-        return E164.test(number) ? number : '';
+        return /^[0-9]+$/.test(digits || '') ? checked(digits, country) : '';
+    }
+
+    /** A number typed without + or 00: national (trunk 0 or not), or international with its country code. */
+    function withCountryCode(national, country) {
+        var code = CODES[country],
+            rest;
+
+        if (!code || !/^[0-9]+$/.test(national)) {
+            return '';
+        }
+        if (code === '1' && national.length === 11 && national.charAt(0) === '1') {
+            return code + national.slice(1); // a NANP number typed with its trunk 1
+        }
+        if (national.charAt(0) === '0' && !KEEP_ZERO[code]) {
+            return code + national.slice(1); // the national trunk prefix
+        }
+        if (national.indexOf(code) === 0 && national.length > lengthsFor(code, country)[1]) {
+            // "381611234530" in Serbia: too long for a national number - the country code without + or 00
+            rest = trunkless(national.slice(code.length), code);
+            if (fits(rest, code, country)) {
+                return code + rest;
+            }
+        }
+        return code + national;
+    }
+
+    /** The national number after a country code: a trunk 0 typed after it ("+381 061 …") is dropped. */
+    function trunkless(national, code) {
+        return national.charAt(0) === '0' && !KEEP_ZERO[code] ? national.slice(1) : national;
+    }
+
+    /** The national number's length is a mobile number's of the country (Italy's start with 0 or 3). */
+    function fits(national, code, country) {
+        var lengths = lengthsFor(code, country);
+
+        return national.length >= lengths[0] && national.length <= lengths[1]
+            && (code !== '39' || /^[03]/.test(national));
+    }
+
+    /** The lengths of the address's country when the number is of its code, else of the code's listed country. */
+    function lengthsFor(code, country) {
+        var listed = Object.keys(LENGTHS).filter(function (each) { return CODES[each] === code; });
+
+        if (CODES[country] === code && LENGTHS[country]) {
+            return LENGTHS[country];
+        }
+        return listed.length ? LENGTHS[listed[0]] : [MIN_NATIONAL, 15 - code.length];
+    }
+
+    /** "+" and the digits when they are a calling code and a national number of a fitting length; else ''. */
+    function checked(digits, country) {
+        var code = [1, 2, 3].map(function (size) { return digits.slice(0, size); })
+                .filter(function (prefix) { return CALLING[prefix]; })[0],
+            national;
+
+        if (!code) {
+            return '';
+        }
+        national = trunkless(digits.slice(code.length), code);
+        return fits(national, code, country) && E164.test('+' + code + national) ? '+' + code + national : '';
     }
 
     /**
