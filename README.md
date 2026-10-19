@@ -93,6 +93,8 @@ and ends the sign-up. A changed number moves the consent. Customers who are sign
   `CommerceKings_AbandonedCartSms/js/sms-phone-core` and Notification's REST routes.
 - National numbers are converted with the store's default country and a calling-code table, not a phone library;
   shoppers abroad type the `+` form.
+- **Live testing:** text reminders are tested live with Infobip; Twilio only against a simulated API. See each provider's
+  README.
 
 ## More
 
