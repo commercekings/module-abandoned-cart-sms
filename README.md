@@ -38,7 +38,7 @@ works. Without one, nothing changes at checkout.
 Then:
 
 1. **Your provider's group** (e.g. *Notifications > Twilio* or *Notifications > Infobip*): credentials and sender. With
-   several SMS providers, select one under *Notifications > Delivery* – but install only one per channel.
+   several SMS providers, select one under *Notifications > Channels and providers* – but install only one per channel.
 2. **Notifications > Consent for an address > Checkbox text: text messages:** the checkbox wording (a default is
    set). Name your store, what you send, how often and how to stop.
 3. **Abandoned Cart > Text message reminders:** *Enabled* Yes, the delay, the hourly limit and the text.
@@ -79,9 +79,9 @@ new number gets a consent only when the shopper ticks again.
 
 - **US:** register your 10DLC brand and campaign (or toll-free verification) with your provider before sending; the
   checkbox text is the opt-in language of your campaign.
-- **Quiet hours:** on by default for SMS (Notifications > Quiet hours, 20:00–08:00) – check the window; US state laws
-  such as Florida's FTSA go by the recipient's local time – use a provider module with a recipient-time-zone zone
-  provider.
+- **Quiet hours:** on by default for SMS (Notifications > Sending rules > Quiet hours, 20:00–08:00) – check the window;
+  US state laws such as Florida's FTSA go by the recipient's local time – use a provider module with a
+  recipient-time-zone zone provider.
 - **Opt-in confirmation:** some rules want a confirmation text after the first sign-up of a number; the Twilio and
   Infobip modules send one (on by default; in their settings).
 - **Protect against SMS pumping.** The public sign-up endpoints can be abused to trigger paid texts (e.g. opt-in
