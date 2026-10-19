@@ -4,6 +4,9 @@ declare(strict_types=1);
 namespace CommerceKings\AbandonedCartSms\Test\Integration;
 
 use CommerceKings\AbandonedCart\Api\CartDataInterface;
+use CommerceKings\AbandonedCart\Api\Data\ReminderQuery;
+use CommerceKings\AbandonedCart\Api\Data\ReminderState;
+use CommerceKings\AbandonedCart\Api\ReminderPolicyInterface;
 use CommerceKings\AbandonedCart\Api\RestoreLinkInterface;
 use CommerceKings\AbandonedCart\Cron\FindAbandonedCarts;
 use CommerceKings\AbandonedCart\Model\CartTable;
@@ -53,14 +56,16 @@ use Psr\Log\NullLogger;
  * The text reminder end to end on a real database, through Abandoned Cart's and Notification's own services: a guest
  * ticks the checkbox for the number (address consent), signs the cart up, the finder queues it as cart_reminder_sms
  * and the reminder sends one text through a fake SMS provider - once per cart, beside the email reminder's history.
+ * Other carts on the database are left alone: the finder only selects this test's cart, the number is the run's own,
+ * and everything the test writes is removed afterwards.
  */
 class SmsReminderFlowTest extends TestCase
 {
-    private const NUMBER = '+381601234567';
-
     private \Magento\Framework\ObjectManagerInterface $om;
     private ResourceConnection $resource;
     private ?int $quoteId = null;
+    /** this run's number, E.164 (+38160 and seven random digits) */
+    private string $number;
     /** @var array<int, array{0: Delivery, 1: DeliveryContent}> */
     private array $sent = [];
     private array $published = [];
@@ -80,11 +85,20 @@ class SmsReminderFlowTest extends TestCase
         }
         $this->resource = $this->om->get(ResourceConnection::class);
         $this->om->get(StoreManagerInterface::class)->setCurrentStore('default');
+        $this->number = '+38160' . sprintf('%07d', random_int(0, 9999999));
+    }
+
+    /** The number as a shopper types it: +381 60 123 4567. */
+    private function typed(): string
+    {
+        return substr($this->number, 0, 4) . ' ' . substr($this->number, 4, 2) . ' ' . substr($this->number, 6, 3) . ' '
+            . substr($this->number, 9);
     }
 
     protected function tearDown(): void
     {
         $db = $this->resource->getConnection();
+        $contacts = [];
         if ($this->quoteId !== null) {
             $contacts = $db->fetchCol($db->select()->from($this->resource->getTableName(SubscriptionManagement::TABLE),
                 'contact_id')->where('type = ?', SmsReminder::CODE)->where('reference_id = ?', $this->quoteId));
@@ -92,12 +106,21 @@ class SmsReminderFlowTest extends TestCase
                 ['type = ?' => SmsReminder::CODE, 'reference_id = ?' => $this->quoteId]);
             $db->delete($this->resource->getTableName(DeliveryStateInterface::TABLE),
                 ['type IN (?)' => [SmsReminder::CODE, CartReminder::CODE], 'reference_id = ?' => $this->quoteId]);
+            // the masked id goes with the quote (foreign key)
             $db->delete($this->resource->getTableName('quote'), ['entity_id = ?' => $this->quoteId]);
-            if (array_filter($contacts)) {
-                $db->delete($this->resource->getTableName(ContactRepository::TABLE), ['contact_id IN (?)' => array_filter($contacts)]);
-            }
         }
-        $db->delete($this->resource->getTableName(AddressConsentRepository::TABLE), ['type = ?' => SmsReminder::CODE]);
+        $website = (int)$this->om->get(StoreManagerInterface::class)->getStore('default')->getWebsiteId();
+        $contacts[] = $this->om->get(ContactRepository::class)->find($website, $this->number, Channel::SMS);
+        if (array_filter($contacts)) {
+            $db->delete($this->resource->getTableName(ContactRepository::TABLE), ['contact_id IN (?)' => array_filter($contacts)]);
+        }
+        // this run's consent evidence only: the number's keys (another cart's consents stay)
+        $consents = $this->om->get(AddressConsentRepository::class);
+        $keys = (fn (string $number) => $this->keys(Channel::SMS, $number))->call($consents, $this->number);
+        $db->delete($this->resource->getTableName(AddressConsentRepository::TABLE),
+            ['type = ?' => SmsReminder::CODE, 'recipient_key IN (?)' => $keys]);
+        $db->delete($this->resource->getTableName('ck_notification_cooldown'),
+            ['recipient_hash = ?' => $this->om->get(Cooldown::class)->hash(Cooldown::key(Channel::SMS, $this->number))]);
     }
 
     private function type(): SmsReminder
@@ -110,9 +133,23 @@ class SmsReminderFlowTest extends TestCase
             . ' Reply STOP to stop');
         $config->method('getStoreName')->willReturn('Acme');
         return new SmsReminder($config, $this->om->create(AddressConsent::class, ['typeCode' => SmsReminder::CODE]),
-            new OncePerCart(), $this->om->get(SubscriptionRepositoryInterface::class), $this->om->get(CartDataInterface::class),
+            $this->policy(), $this->om->get(SubscriptionRepositoryInterface::class), $this->om->get(CartDataInterface::class),
             $this->om->get(RestoreLinkInterface::class), $this->om->get(StoreManagerInterface::class),
             $this->om->get(\CommerceKings\Notification\Model\PhoneNormalizer::class));
+    }
+
+    /** OncePerCart; the finder's selection is limited to this test's cart, so other carts are never queued. */
+    private function policy(): ReminderPolicyInterface
+    {
+        return new class(new OncePerCart(), fn () => (int)$this->quoteId) implements ReminderPolicyInterface {
+            public function __construct(private readonly OncePerCart $policy, private readonly \Closure $quoteId) {}
+            public function getDescription(): string { return $this->policy->getDescription(); }
+            public function canSend(ReminderState $state): bool { return $this->policy->canSend($state); }
+            public function dueCondition(ReminderQuery $query): string
+            {
+                return sprintf('(%s) AND %s = %d', $this->policy->dueCondition($query), $query->quoteId(), ($this->quoteId)());
+            }
+        };
     }
 
     private function quietHours(): QuietHoursInterface
@@ -154,12 +191,14 @@ class SmsReminderFlowTest extends TestCase
         $wording = $this->om->get(NotificationConfig::class)->getAddressConsentWording((int)$store->getId(), Channel::SMS);
         $this->assertNotSame('', $wording, 'the default checkbox text for text messages');
         $consents = $this->om->create(AddressConsentManagement::class, ['types' => $types]);
-        $this->assertTrue($consents->recordGuest(SmsReminder::CODE, $masked, '+381 60 123 4567', hash('sha256', $wording)));
+        $this->assertTrue($consents->recordGuest(SmsReminder::CODE, $masked, $this->typed(), hash('sha256', $wording)));
+        // no subscription observers: a provider module's opt-in confirmation would queue a real text to the number
         $management = $this->om->create(SubscriptionManagement::class, ['types' => $types,
-            'permissions' => $this->om->create(PermissionResolver::class, ['types' => $types])]);
-        $this->assertTrue($management->subscribeGuest(SmsReminder::CODE, $masked, '+381 60 123 4567'));
+            'permissions' => $this->om->create(PermissionResolver::class, ['types' => $types]),
+            'events' => $this->createStub(\Magento\Framework\Event\ManagerInterface::class)]);
+        $this->assertTrue($management->subscribeGuest(SmsReminder::CODE, $masked, $this->typed()));
         // Notification keeps the contact as entered; the type returns the number in E.164 (the cooldown's key)
-        $this->assertSame(self::NUMBER, $type->getRecipient($this->quoteId));
+        $this->assertSame($this->number, $type->getRecipient($this->quoteId));
 
         // idle past the delay
         $db = $this->resource->getConnection();
@@ -196,7 +235,7 @@ class SmsReminderFlowTest extends TestCase
         $reminder->process((string)$this->published[0][1]);
         $this->assertCount(1, $this->sent);
         [$delivery, $content] = $this->sent[0];
-        $this->assertSame([Channel::SMS, self::NUMBER, SmsReminder::CODE, true],
+        $this->assertSame([Channel::SMS, $this->number, SmsReminder::CODE, true],
             [$delivery->channel, $delivery->recipient, $delivery->type, $delivery->stoppable]);
         $this->assertStringStartsWith('Acme: you left something in your cart. Complete your order: http', (string)$content->text);
         $this->assertStringContainsString('checkout/cart', (string)$content->text, 'the cart page');
