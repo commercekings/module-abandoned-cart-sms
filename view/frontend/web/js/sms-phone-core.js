@@ -1,8 +1,8 @@
 /**
  * Text message reminders at checkout, framework-free: toE164() turns a typed number into the form Notification stores
- * ("+381601234567"), numberFor() picks the number the reminder goes to (the shipping phone, or a different one),
- * display() shows it, subscribe() signs the cart up. Luma's checkout uses it (js/view/sms-consent); a custom checkout
- * can build on it. Notification checks the number again on the server.
+ * ("+381601234567"), numberFor() gives the number the reminder goes to (the shipping phone), display() shows it,
+ * subscribe() signs the cart up. Luma's checkout uses it (js/view/sms-consent); a custom checkout can build on it.
+ * Notification checks the number again on the server.
  */
 define([], function () {
     'use strict';
@@ -78,20 +78,13 @@ define([], function () {
 
     /**
      * The number the text reminder goes to: the shipping address's phone, read in the address's country (else the
-     * store's), or - once it is a valid number - the different number the shopper typed instead (e.g. a gift
-     * recipient's phone), read the same way. Until then the shipping phone stays, so opening the field or a typo never
-     * withdraws a consent given for it.
+     * store's) - '' when it cannot take texts (empty, too short, not a number).
      *
-     * @param {Object} state addressPhone, addressCountry (ISO 3166), useCustom (boolean), custom, defaultCountry
-     * @return {{number: string, source: string}} number in E.164, '' when there is none; source 'address' or 'custom'
+     * @param {Object} state addressPhone, addressCountry (ISO 3166), defaultCountry
+     * @return {string} the number in E.164, or ''
      */
     function numberFor(state) {
-        var country = state.addressCountry || state.defaultCountry || '',
-            custom = state.useCustom ? toE164(state.custom, country) : '';
-
-        return custom !== ''
-            ? {number: custom, source: 'custom'}
-            : {number: toE164(state.addressPhone, country), source: 'address'};
+        return toE164(state.addressPhone, state.addressCountry || state.defaultCountry || '');
     }
 
     /**

@@ -4,21 +4,11 @@
     <div data-bind="visible: number">
         <input type="checkbox" class="checkbox" id="ck-address-consent-cart_reminder_sms"/>
         <label class="label" for="ck-address-consent-cart_reminder_sms">
-            <span data-bind="text: consent.wording"></span>
+            <span data-bind="text: $t('Yes, text me at %1.').replace('%1', shown())"></span>
         </label>
-        <div class="note ck-sms-consent-number">
-            <span data-bind="text: $t('Text me at %1 about my cart.').replace('%1', shown())"></span>
-        </div>
-    </div>
-    <button type="button" class="action action-auth-toggle ck-sms-consent-toggle" data-bind="click: toggleCustom, visible: toggleShown">
-        <span data-bind="text: useCustom() ? $t('Use the shipping phone') : $t('Use a different number')"></span>
-    </button>
-    <div class="control" data-bind="visible: useCustom">
-        <input type="tel" class="input-text" autocomplete="tel"
-               data-bind="value: custom, valueUpdate: 'blur', attr: {id: 'ck-sms-phone-number-custom', 'aria-label': $t('Mobile number for text reminders'),
-                   placeholder: $t('e.g. +44 7700 900123')}"/>
-        <div class="mage-error" data-bind="visible: customInvalid">
-            <span data-bind="i18n: 'Enter the number with its country code, e.g. +44 7700 900123.'"></span>
+        <!-- the configured consent text: what is stored (and hashed) as the evidence -->
+        <div class="note ck-sms-consent-wording">
+            <span data-bind="text: consent.wording"></span>
         </div>
     </div>
 </div>

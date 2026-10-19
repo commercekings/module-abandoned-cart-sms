@@ -1,9 +1,10 @@
 /**
  * Luma checkout: the text reminder checkbox right under the shipping phone (a jsLayout child, placed by
- * Model\Checkout\SmsConsentLayout). The number is the shipping phone - the address form's, or the selected saved
- * address's - in E.164 with the address's country (sms-phone-core); "Use a different number" takes another one. The
- * checkbox is Notification's address consent widget: it records the consent for that number, withdraws it on uncheck,
- * moves it when the number changes and re-checks the box when a withdrawal fails. Once a consent is recorded
+ * Model\Checkout\SmsConsentLayout), labelled "Yes, text me at <number>." with the configured consent text - the
+ * evidence - under it. The number is the shipping phone - the address form's, or the selected saved address's - in
+ * E.164 with the address's country (sms-phone-core); a phone that cannot take texts gets no checkbox. The checkbox is
+ * Notification's address consent widget: it records the consent for that number, withdraws it on uncheck, moves it when
+ * the number changes and re-checks the box when a withdrawal fails. Once a consent is recorded
  * ("ckAddressConsent:recorded"), the cart is signed up for the text reminder. The notification type is
  * "subscriptionType": Magento's layout builder takes a component's "type" for itself.
  */
@@ -37,28 +38,15 @@ define([
             this._super();
             this.addressPhone = ko.observable('');
             this.addressCountry = ko.observable('');
-            this.useCustom = ko.observable(false);
-            this.custom = ko.observable('');
             this.number = ko.pureComputed(function () {
                 return core.numberFor({
                     addressPhone: self.addressPhone(),
                     addressCountry: self.addressCountry(),
-                    useCustom: self.useCustom(),
-                    custom: self.custom(),
                     defaultCountry: self.country
-                }).number;
+                });
             });
             this.shown = ko.pureComputed(function () {
                 return core.display(self.number());
-            });
-            // "Use a different number" only once a shipping phone is entered - also an unusable one (e.g. a landline),
-            // so the shopper can give a mobile number - and while a different number is in use
-            this.toggleShown = ko.pureComputed(function () {
-                return self.useCustom() || String(self.addressPhone() || '').trim() !== '';
-            });
-            this.customInvalid = ko.pureComputed(function () {
-                return self.useCustom() && String(self.custom() || '').trim() !== ''
-                    && core.toE164(self.custom(), self.addressCountry() || self.country) === '';
             });
             this.number.subscribe(function (number) {
                 self.numberChanged(number);
@@ -90,10 +78,6 @@ define([
                 read();
                 provider.on('shippingAddress', read);
             });
-        },
-
-        toggleCustom: function () {
-            this.useCustom(!this.useCustom());
         },
 
         /** The consent widget on the rendered block (afterRender). */

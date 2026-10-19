@@ -65,35 +65,20 @@ test('every calling code is digits and none starts with 0', () => {
 
 test('the shipping phone is the number, read in the address\'s country, else the store\'s', () => {
     const {numberFor} = core();
-    assert.deepEqual({...numberFor({addressPhone: '060 123 4567', addressCountry: 'RS', defaultCountry: 'DE'})},
-        {number: '+381601234567', source: 'address'}, 'a national number of the shipping country');
-    assert.equal(numberFor({addressPhone: '0151 23456789', addressCountry: '', defaultCountry: 'DE'}).number,
-        '+4915123456789', 'no country yet: the store\'s');
-    assert.equal(numberFor({addressPhone: '+44 7700 900123', addressCountry: 'RS', defaultCountry: 'DE'}).number,
-        '+447700900123', 'an international number stays');
-    assert.equal(numberFor({addressPhone: '(212) 555-0100', addressCountry: 'US'}).number, '+12125550100');
+    assert.equal(numberFor({addressPhone: '060 123 4567', addressCountry: 'RS', defaultCountry: 'DE'}), '+381601234567',
+        'a national number of the shipping country');
+    assert.equal(numberFor({addressPhone: '0151 23456789', addressCountry: '', defaultCountry: 'DE'}), '+4915123456789',
+        'no country yet: the store\'s');
+    assert.equal(numberFor({addressPhone: '+44 7700 900123', addressCountry: 'RS', defaultCountry: 'DE'}), '+447700900123',
+        'an international number stays');
+    assert.equal(numberFor({addressPhone: '(212) 555-0100', addressCountry: 'US'}), '+12125550100');
 });
 
-test('no usable shipping phone gives no number', () => {
+test('a shipping phone that cannot take texts gives no number (no checkbox)', () => {
     const {numberFor} = core();
     for (const phone of ['', '   ', '123', 'call me', undefined]) {
-        assert.equal(numberFor({addressPhone: phone, addressCountry: 'RS', defaultCountry: 'RS'}).number, '',
-            JSON.stringify(phone));
+        assert.equal(numberFor({addressPhone: phone, addressCountry: 'RS', defaultCountry: 'RS'}), '', JSON.stringify(phone));
     }
-});
-
-test('a valid different number replaces the shipping phone, read the same way', () => {
-    const {numberFor} = core();
-    const state = {addressPhone: '060 123 4567', addressCountry: 'RS', defaultCountry: 'DE', useCustom: true};
-    assert.deepEqual({...numberFor({...state, custom: '064 765 4321'})}, {number: '+381647654321', source: 'custom'},
-        'e.g. a gift recipient\'s phone, national in the shipping country');
-    assert.equal(numberFor({...state, custom: '+43 664 1234567'}).number, '+436641234567');
-    assert.deepEqual({...numberFor({...state, custom: ''})}, {number: '+381601234567', source: 'address'},
-        'nothing typed yet: the shipping phone stays, so its consent is not withdrawn');
-    assert.equal(numberFor({...state, custom: 'abc'}).number, '+381601234567', 'not a number: the shipping phone stays');
-    assert.equal(numberFor({...state, addressPhone: '', custom: 'abc'}).number, '', 'neither is a number');
-    assert.equal(numberFor({...state, useCustom: false, custom: '064 765 4321'}).number, '+381601234567',
-        'switched back: the shipping phone again');
 });
 
 test('display shows the calling code apart, and nothing for a non-number', () => {

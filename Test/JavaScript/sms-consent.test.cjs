@@ -145,6 +145,11 @@ test('the shipping phone of the address form is the number, and a new one moves 
     const {instance, page} = component(CONFIG, {provider});
     assert.equal(instance.number(), '+381601234567');
     assert.equal(instance.shown(), '+381 601234567');
+    const template = js('template/sms-consent.html');
+    assert.match(template, /<label class="label" for="ck-address-consent-cart_reminder_sms">\s*<span data-bind="text: \$t\('Yes, text me at %1\.'\)\.replace\('%1', shown\(\)\)"><\/span>\s*<\/label>/,
+        'the label: "Yes, text me at +381 601234567."');
+    assert.match(template, /<div class="note ck-sms-consent-wording">\s*<span data-bind="text: consent\.wording"><\/span>/,
+        'under it, the configured consent text - the evidence the server stores');
     page.state.checked = true;
     provider.set('telephone', '064 765 4321');
     assert.equal(page.state.hidden, '+381647654321');
@@ -162,41 +167,13 @@ test('a saved address: the selected address\'s phone', () => {
     assert.equal(instance.number(), '+447700900456');
 });
 
-test('"Use a different number" keeps the ticked consent until a valid number is entered, then moves it', () => {
-    const {instance, page} = component(CONFIG, {provider: form('060 123 4567', 'RS')});
-    page.state.checked = true;
-    instance.toggleCustom();
-    assert.equal(instance.number(), '+381601234567', 'opening the field changes nothing');
-    instance.custom('064');
-    assert.equal(instance.number(), '+381601234567', 'not a number yet: the shipping phone stays');
-    assert.equal(instance.customInvalid(), true);
-    assert.deepEqual(page.state.changes, [], 'nothing withdrawn');
-    instance.custom('064 765 4321');
-    assert.equal(instance.number(), '+381647654321');
-    assert.equal(instance.customInvalid(), false);
-    assert.deepEqual(page.state.changes, [['hidden', 'change', '+381647654321']]);
-    assert.equal(page.state.checked, true, 'still ticked: the widget withdraws the old number and records the new');
-    instance.toggleCustom();
-    assert.equal(instance.number(), '+381601234567', 'back to the shipping phone');
-});
-
-test('"Use a different number" shows only once a shipping phone is entered, also an unusable one', () => {
-    const provider = form('', 'RS');
+test('only the shipping phone: no different-number link or input, and no checkbox without a usable phone', () => {
+    const template = js('template/sms-consent.html');
+    assert.doesNotMatch(template, /toggle|custom|different/i);
+    assert.match(template, /<div data-bind="visible: number">\s*<input type="checkbox"/);
+    const provider = form('123', 'RS');
     const {instance} = component(CONFIG, {provider});
-    assert.equal(instance.toggleShown(), false, 'no phone yet: no link, no checkbox');
-    assert.equal(instance.number(), '');
-    provider.set('telephone', '   ');
-    assert.equal(instance.toggleShown(), false, 'blanks are no phone');
-    provider.set('telephone', '123');
-    assert.equal(instance.number(), '', 'unusable (too short): no checkbox');
-    assert.equal(instance.toggleShown(), true, 'but the link, so the shopper can give a mobile number');
+    assert.equal(instance.number(), '', 'too short: no checkbox');
     provider.set('telephone', '060 123 4567');
-    assert.equal(instance.toggleShown(), true, 'with the checkbox');
-    instance.toggleCustom();
-    provider.set('telephone', '');
-    assert.equal(instance.toggleShown(), true, 'a different number in use: "Use the shipping phone" stays');
-});
-
-test('the template shows the link by toggleShown', () => {
-    assert.match(js('template/sms-consent.html'), /data-bind="click: toggleCustom, visible: toggleShown"/);
+    assert.equal(instance.number(), '+381601234567');
 });
