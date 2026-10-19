@@ -82,14 +82,16 @@ test('no usable shipping phone gives no number', () => {
     }
 });
 
-test('a different number replaces the shipping phone, read the same way', () => {
+test('a valid different number replaces the shipping phone, read the same way', () => {
     const {numberFor} = core();
     const state = {addressPhone: '060 123 4567', addressCountry: 'RS', defaultCountry: 'DE', useCustom: true};
     assert.deepEqual({...numberFor({...state, custom: '064 765 4321'})}, {number: '+381647654321', source: 'custom'},
         'e.g. a gift recipient\'s phone, national in the shipping country');
     assert.equal(numberFor({...state, custom: '+43 664 1234567'}).number, '+436641234567');
-    assert.equal(numberFor({...state, custom: ''}).number, '', 'nothing typed yet: no number, not the shipping phone');
-    assert.equal(numberFor({...state, custom: 'abc'}).number, '');
+    assert.deepEqual({...numberFor({...state, custom: ''})}, {number: '+381601234567', source: 'address'},
+        'nothing typed yet: the shipping phone stays, so its consent is not withdrawn');
+    assert.equal(numberFor({...state, custom: 'abc'}).number, '+381601234567', 'not a number: the shipping phone stays');
+    assert.equal(numberFor({...state, addressPhone: '', custom: 'abc'}).number, '', 'neither is a number');
     assert.equal(numberFor({...state, useCustom: false, custom: '064 765 4321'}).number, '+381601234567',
         'switched back: the shipping phone again');
 });

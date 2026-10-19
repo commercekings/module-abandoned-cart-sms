@@ -7,13 +7,16 @@ use CommerceKings\AbandonedCartSms\ViewModel\Checkout;
 use CommerceKings\Notification\Api\Channel;
 use CommerceKings\Notification\ViewModel\AddressConsent;
 use Magento\Checkout\Block\Checkout\LayoutProcessorInterface;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session;
 
 /**
  * Luma checkout: puts the text reminder checkbox (js/view/sms-consent) right under the shipping phone - in the address
  * form (guests, and customers without a saved address), or after the saved addresses for a customer who has them (the
  * form is then only the "New Address" pop-up, and the selected address's phone is the number). Only where text
- * reminders are available (ViewModel\Checkout): an SMS provider, the type on in the store and a checkbox text.
+ * reminders are available (ViewModel\Checkout): an SMS provider, the type on in the store and a checkbox text - and
+ * never for a virtual cart (no shipping address, no shipping phone). The notification type goes as "subscriptionType":
+ * Magento's layout builder takes a component's "type" for itself.
  */
 class SmsConsentLayout implements LayoutProcessorInterface
 {
@@ -25,27 +28,28 @@ class SmsConsentLayout implements LayoutProcessorInterface
     public function __construct(
         private readonly Checkout $checkout,
         private readonly AddressConsent $addressConsent,
-        private readonly Session $customerSession
+        private readonly Session $customerSession,
+        private readonly CheckoutSession $checkoutSession
     ) {
     }
 
     public function process($jsLayout)
     {
+        if (!$this->checkout->isAvailable() || $this->checkoutSession->getQuote()->isVirtual()) {
+            return $jsLayout;
+        }
         $shipping = &$jsLayout;
         foreach (self::SHIPPING as $key) {
             if (!isset($shipping[$key]) || !is_array($shipping[$key])) {
-                return $jsLayout; // a virtual cart (no shipping step) or a replaced checkout
+                return $jsLayout; // a checkout without Luma's shipping address step
             }
             $shipping = &$shipping[$key];
-        }
-        if (!$this->checkout->isAvailable()) {
-            return $jsLayout;
         }
         $options = $this->checkout->getOptions();
         $component = [
             'component' => 'CommerceKings_AbandonedCartSms/js/view/sms-consent',
             'config' => [
-                'type' => $options['type'],
+                'subscriptionType' => $options['type'],
                 'country' => $options['country'],
                 'urls' => $options['urls'],
                 'consent' => [

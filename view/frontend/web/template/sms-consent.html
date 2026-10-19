@@ -1,9 +1,9 @@
 <!-- the text reminder checkbox under the shipping phone (js/view/sms-consent) -->
 <div class="field choice ck-sms-consent" data-bind="afterRender: initConsent">
-    <input type="hidden" data-bind="attr: {id: inputId}"/>
+    <input type="hidden" id="ck-sms-phone-number" data-bind="value: number"/>
     <div data-bind="visible: number">
-        <input type="checkbox" class="checkbox" data-bind="attr: {id: boxId}"/>
-        <label class="label" data-bind="attr: {for: boxId}">
+        <input type="checkbox" class="checkbox" id="ck-address-consent-cart_reminder_sms"/>
+        <label class="label" for="ck-address-consent-cart_reminder_sms">
             <span data-bind="text: consent.wording"></span>
         </label>
         <div class="note ck-sms-consent-number">
@@ -15,7 +15,7 @@
     </button>
     <div class="control" data-bind="visible: useCustom">
         <input type="tel" class="input-text" autocomplete="tel"
-               data-bind="value: custom, valueUpdate: 'blur', attr: {id: inputId + '-custom', 'aria-label': $t('Mobile number for text reminders'),
+               data-bind="value: custom, valueUpdate: 'blur', attr: {id: 'ck-sms-phone-number-custom', 'aria-label': $t('Mobile number for text reminders'),
                    placeholder: $t('e.g. +44 7700 900123')}"/>
         <div class="mage-error" data-bind="visible: customInvalid">
             <span data-bind="i18n: 'Enter the number with its country code, e.g. +44 7700 900123.'"></span>

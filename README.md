@@ -64,12 +64,13 @@ Quiet hours, the recipient cooldown and STOP replies are Notification's settings
 
 ## At checkout
 
-Right under the shipping phone: the checkbox, and the number it is for – *Text me at +381 601234567 about my cart.*
-The number is the shipping phone (the address form's, or the selected saved address's for a signed-in customer),
-read with the address's country, so a national number (`060 123 4567`) works; it is stored in E.164. *Use a different
-number* takes another one (e.g. when the parcel goes to someone else), with its country code or as a national number
-of the shipping country. Ticking the box records the consent for that number and signs the cart up; unticking
-withdraws it and ends the sign-up. A changed number moves the consent; without a number the box is hidden.
+Right under the shipping phone: the checkbox, and the number it is for – *Text me at +381 601234567 about my cart.* The
+number is the shipping phone (the address form's, or the selected saved address's for a signed-in customer), read with
+the address's country, so a national number (`060 123 4567`) works; it is stored in E.164. *Use a different number*
+takes another one (e.g. when the parcel goes to someone else), with its country code or as a national number of the
+shipping country; the shipping phone stays until it is a valid number. Ticking the box records the consent for that
+number and signs the cart up; unticking withdraws it and ends the sign-up. A changed number moves the consent; without a
+number the box is hidden.
 
 ## Before going live
 

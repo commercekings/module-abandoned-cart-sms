@@ -78,16 +78,19 @@ define([], function () {
 
     /**
      * The number the text reminder goes to: the shipping address's phone, read in the address's country (else the
-     * store's), or the different number the shopper typed instead (e.g. a gift recipient's phone), read the same way.
+     * store's), or - once it is a valid number - the different number the shopper typed instead (e.g. a gift
+     * recipient's phone), read the same way. Until then the shipping phone stays, so opening the field or a typo never
+     * withdraws a consent given for it.
      *
      * @param {Object} state addressPhone, addressCountry (ISO 3166), useCustom (boolean), custom, defaultCountry
      * @return {{number: string, source: string}} number in E.164, '' when there is none; source 'address' or 'custom'
      */
     function numberFor(state) {
-        var country = state.addressCountry || state.defaultCountry || '';
+        var country = state.addressCountry || state.defaultCountry || '',
+            custom = state.useCustom ? toE164(state.custom, country) : '';
 
-        return state.useCustom
-            ? {number: toE164(state.custom, country), source: 'custom'}
+        return custom !== ''
+            ? {number: custom, source: 'custom'}
             : {number: toE164(state.addressPhone, country), source: 'address'};
     }
 

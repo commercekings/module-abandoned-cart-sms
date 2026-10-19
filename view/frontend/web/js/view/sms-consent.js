@@ -4,7 +4,8 @@
  * address's - in E.164 with the address's country (sms-phone-core); "Use a different number" takes another one. The
  * checkbox is Notification's address consent widget: it records the consent for that number, withdraws it on uncheck,
  * moves it when the number changes and re-checks the box when a withdrawal fails. Once a consent is recorded
- * ("ckAddressConsent:recorded"), the cart is signed up for the text reminder.
+ * ("ckAddressConsent:recorded"), the cart is signed up for the text reminder. The notification type is
+ * "subscriptionType": Magento's layout builder takes a component's "type" for itself.
  */
 define([
     'jquery',
@@ -21,10 +22,11 @@ define([
         defaults: {
             template: 'CommerceKings_AbandonedCartSms/sms-consent',
             placement: 'address-form',
-            type: '',
+            subscriptionType: '',
             country: '',
             urls: {guest: '', mine: ''},
             consent: {wording: '', wordingHash: '', urls: {guest: '', mine: ''}},
+            // fixed ids in the template: set before the widget reads them (the wrapper's afterRender runs first)
             inputId: 'ck-sms-phone-number',
             boxId: 'ck-address-consent-cart_reminder_sms'
         },
@@ -50,7 +52,8 @@ define([
                 return core.display(self.number());
             });
             this.customInvalid = ko.pureComputed(function () {
-                return self.useCustom() && String(self.custom() || '').trim() !== '' && self.number() === '';
+                return self.useCustom() && String(self.custom() || '').trim() !== ''
+                    && core.toE164(self.custom(), self.addressCountry() || self.country) === '';
             });
             this.number.subscribe(function (number) {
                 self.numberChanged(number);
@@ -93,9 +96,8 @@ define([
             var self = this;
 
             this.root = $(element);
-            this.root.find('#' + this.inputId).val(this.number());
             this.root.ckAddressConsent({
-                type: this.type,
+                type: this.subscriptionType,
                 wordingHash: this.consent.wordingHash,
                 urls: this.consent.urls,
                 phone: '#' + this.inputId
@@ -128,7 +130,7 @@ define([
             }
             core.subscribe({
                 url: config.isCustomerLoggedIn ? this.urls.mine : this.urls.guest,
-                type: this.type,
+                type: this.subscriptionType,
                 reference: reference,
                 recipient: recipient
             }).catch(function () {

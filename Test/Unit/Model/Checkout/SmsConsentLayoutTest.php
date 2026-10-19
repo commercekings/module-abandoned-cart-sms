@@ -8,7 +8,9 @@ use CommerceKings\AbandonedCartSms\ViewModel\Checkout;
 use CommerceKings\Notification\ViewModel\AddressConsent;
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session;
+use Magento\Quote\Model\Quote;
 use PHPUnit\Framework\TestCase;
 
 /** The checkbox goes right under the shipping phone: in the address form, or after a customer's saved addresses. */
@@ -17,6 +19,7 @@ class SmsConsentLayoutTest extends TestCase
     private bool $available = true;
     private bool $loggedIn = false;
     private array $addresses = [];
+    private bool $virtual = false;
 
     private function process(array $jsLayout): array
     {
@@ -34,7 +37,11 @@ class SmsConsentLayoutTest extends TestCase
         $session = $this->createStub(Session::class);
         $session->method('isLoggedIn')->willReturnCallback(fn () => $this->loggedIn);
         $session->method('getCustomerDataObject')->willReturn($customer);
-        return (new SmsConsentLayout($checkout, $consent, $session))->process($jsLayout);
+        $quote = $this->createStub(Quote::class);
+        $quote->method('isVirtual')->willReturnCallback(fn () => $this->virtual);
+        $checkoutSession = $this->createStub(CheckoutSession::class);
+        $checkoutSession->method('getQuote')->willReturn($quote);
+        return (new SmsConsentLayout($checkout, $consent, $session, $checkoutSession))->process($jsLayout);
     }
 
     private static function checkout(?int $telephoneSortOrder = 120): array
@@ -63,7 +70,7 @@ class SmsConsentLayoutTest extends TestCase
         $this->assertSame('CommerceKings_AbandonedCartSms/js/view/sms-consent', $component['component']);
         $this->assertSame(131, $component['sortOrder'], 'right after the telephone');
         $this->assertSame([
-            'type' => 'cart_reminder_sms',
+            'subscriptionType' => 'cart_reminder_sms',
             'country' => 'RS',
             'urls' => ['guest' => '/rest/default/V1/ck-notification/subscriptions', 'mine' => '/rest/default/V1/ck-notification/subscriptions/mine'],
             'consent' => ['wording' => 'Yes, text me. Reply STOP to stop.', 'wordingHash' => 'hash-1',
@@ -96,7 +103,23 @@ class SmsConsentLayoutTest extends TestCase
         $this->available = false;
         $this->assertSame(self::checkout(), $this->process(self::checkout()));
         $this->available = true;
-        $virtual = ['components' => ['checkout' => ['children' => ['steps' => ['children' => ['billing-step' => []]]]]]];
-        $this->assertSame($virtual, $this->process($virtual), 'a virtual cart has no shipping phone');
+        $this->virtual = true;
+        $this->assertSame(self::checkout(), $this->process(self::checkout()), 'a virtual cart has no shipping phone');
+        $this->virtual = false;
+        $other = ['components' => ['checkout' => ['children' => ['steps' => ['children' => ['billing-step' => []]]]]]];
+        $this->assertSame($other, $this->process($other), 'a checkout without Luma\'s shipping step');
+    }
+
+    /**
+     * Magento_Ui's layout builder merges "config" into the component and then takes "type" for the component type
+     * (layout.js build(): node.componentType = node.type; delete node.type) - a "type" here would never arrive.
+     */
+    public function testNoConfigKeyIsOneTheLayoutBuilderTakes(): void
+    {
+        $config = self::shipping($this->process(self::checkout()))['children']['shipping-address-fieldset']['children']
+            ['ck-sms-consent']['config'];
+        foreach (['type', 'name', 'index', 'dataScope', 'parentName', 'parentScope', 'children', 'componentType'] as $key) {
+            $this->assertArrayNotHasKey($key, $config, $key);
+        }
     }
 }
