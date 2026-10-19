@@ -99,8 +99,6 @@ new number gets a consent only when the shopper ticks again.
   `CommerceKings_AbandonedCartSms/js/sms-phone-core` and Notification's REST routes.
 - National numbers are converted with the store's default country and a calling-code table, not a phone library;
   shoppers abroad type the `+` form.
-- **Live testing:** text reminders are tested live with Infobip; Twilio only against a simulated API. See each provider's
-  README.
 
 ## More
 
@@ -113,6 +111,14 @@ These modules help you ask for, record and respect your shoppers' choices – th
 their own. You are responsible for your store's privacy: what you collect, the wording you show, your privacy policy
 and whether your setup meets the laws that apply to you (e.g. GDPR, ePrivacy, TCPA, SMS marketing rules). Get legal
 advice if you are unsure.
+
+## Tested (as of 0.1.0)
+
+- **Automated tests:** 18 unit, 4 integration and 30 JavaScript tests (unit and JavaScript tests run on every push); 100% line coverage by the unit tests.
+- **End to end on Magento 2.4.9:** the checkout checkbox under the phone field, the text reminder, the opt-in confirmation, STOP and START, quiet hours and provider errors – against a simulated Twilio API.
+- **Load:** 300 of 300 texts delivered through the real sender to a simulated provider.
+- **Install:** a fresh install of every CommerceKings package from GitHub on an empty Magento database, verified.
+- **Not tested:** a STOP reply from a real phone (STOP is tested with the providers' webhook formats); Twilio on a live account (Infobip sends live, see its README).
 
 ---
 
