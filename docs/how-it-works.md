@@ -61,6 +61,9 @@ get both, each once.
   one, no checkbox without a usable phone).
 - `Test/Integration/SmsReminderFlowTest.php` (a Magento development database): guest consent and sign-up through
   Notification, the finder, and one text through a fake SMS provider – once per cart, beside the email's history.
+  `SmsConsentRaceTest.php`: the checkbox unticked while the reminder goes out – a withdrawal stored before the claim
+  stops the text (the claim checks the consent in the same statement); one after the provider accepted it changes
+  nothing and allows no second text. Both use only their own cart and number and remove what they write.
 
 ```sh
 vendor/bin/phpunit --no-configuration --bootstrap vendor/autoload.php vendor/commercekings/module-abandoned-cart-sms/Test/Unit
