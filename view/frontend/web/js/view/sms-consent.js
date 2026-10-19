@@ -51,6 +51,11 @@ define([
             this.shown = ko.pureComputed(function () {
                 return core.display(self.number());
             });
+            // "Use a different number" only once a shipping phone is entered - also an unusable one (e.g. a landline),
+            // so the shopper can give a mobile number - and while a different number is in use
+            this.toggleShown = ko.pureComputed(function () {
+                return self.useCustom() || String(self.addressPhone() || '').trim() !== '';
+            });
             this.customInvalid = ko.pureComputed(function () {
                 return self.useCustom() && String(self.custom() || '').trim() !== ''
                     && core.toE164(self.custom(), self.addressCountry() || self.country) === '';

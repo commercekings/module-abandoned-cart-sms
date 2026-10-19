@@ -179,3 +179,24 @@ test('"Use a different number" keeps the ticked consent until a valid number is 
     instance.toggleCustom();
     assert.equal(instance.number(), '+381601234567', 'back to the shipping phone');
 });
+
+test('"Use a different number" shows only once a shipping phone is entered, also an unusable one', () => {
+    const provider = form('', 'RS');
+    const {instance} = component(CONFIG, {provider});
+    assert.equal(instance.toggleShown(), false, 'no phone yet: no link, no checkbox');
+    assert.equal(instance.number(), '');
+    provider.set('telephone', '   ');
+    assert.equal(instance.toggleShown(), false, 'blanks are no phone');
+    provider.set('telephone', '123');
+    assert.equal(instance.number(), '', 'unusable (too short): no checkbox');
+    assert.equal(instance.toggleShown(), true, 'but the link, so the shopper can give a mobile number');
+    provider.set('telephone', '060 123 4567');
+    assert.equal(instance.toggleShown(), true, 'with the checkbox');
+    instance.toggleCustom();
+    provider.set('telephone', '');
+    assert.equal(instance.toggleShown(), true, 'a different number in use: "Use the shipping phone" stays');
+});
+
+test('the template shows the link by toggleShown', () => {
+    assert.match(js('template/sms-consent.html'), /data-bind="click: toggleCustom, visible: toggleShown"/);
+});

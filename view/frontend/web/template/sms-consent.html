@@ -10,7 +10,7 @@
             <span data-bind="text: $t('Text me at %1 about my cart.').replace('%1', shown())"></span>
         </div>
     </div>
-    <button type="button" class="action action-auth-toggle ck-sms-consent-toggle" data-bind="click: toggleCustom">
+    <button type="button" class="action action-auth-toggle ck-sms-consent-toggle" data-bind="click: toggleCustom, visible: toggleShown">
         <span data-bind="text: useCustom() ? $t('Use the shipping phone') : $t('Use a different number')"></span>
     </button>
     <div class="control" data-bind="visible: useCustom">

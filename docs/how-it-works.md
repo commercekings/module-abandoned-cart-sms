@@ -23,11 +23,12 @@ built on `@api` and di.xml only. Start with the [README](../README.md).
   only the "New Address" pop-up – it goes after the address list (`address-list-additional-addresses`). The number is
   the shipping phone (the form's `checkoutProvider` data, or `quote.shippingAddress()` for a saved address) in E.164
   with the address's country (`js/sms-phone-core`: `numberFor()`, shown with `display()`), or the shopper's *different
-  number* once it is valid (until then the shipping phone stays, so a ticked consent is not withdrawn). It goes into a
-  hidden field, the phone of Notification's address consent widget (`CommerceKings_Notification/js/address-consent`):
-  checking records the consent, unchecking withdraws it, a changed number moves it, a failed withdrawal checks the box
-  again; no number unchecks it. When the consent is recorded (`ckAddressConsent:recorded`), the cart is signed up:
-  guests with the masked cart id, customers with the quote id and `/mine`.
+  number* (the link shows once a shipping phone is entered, also an unusable one) once it is valid (until then the
+  shipping phone stays, so a ticked consent is not withdrawn). It goes into a hidden field, the phone of Notification's
+  address consent widget (`CommerceKings_Notification/js/address-consent`): checking records the consent, unchecking
+  withdraws it, a changed number moves it, a failed withdrawal checks the box again; no number unchecks it. When the
+  consent is recorded (`ckAddressConsent:recorded`), the cart is signed up: guests with the masked cart id, customers
+  with the quote id and `/mine`.
 
 ## Flow
 
