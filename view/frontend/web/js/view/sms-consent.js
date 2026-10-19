@@ -1,7 +1,8 @@
 /**
  * Luma checkout: the text reminder checkbox right under the shipping phone (a jsLayout child, placed by
- * Model\Checkout\SmsConsentLayout), labelled "Yes, text me at <number>." with the configured consent text - the
- * evidence - under it. The number is the shipping phone - the address form's, or the selected saved address's - in
+ * Model\Checkout\SmsConsentLayout). Its label is the configured consent wording with the number in place of
+ * {{number}} ("Yes, text me offers and reminders at +381 61 123 4530. …", Notification's renderWording()); the wording
+ * itself is the evidence. The number is the shipping phone - the address form's, or the selected saved address's - in
  * E.164 with the address's country (sms-phone-core); a phone that cannot take texts gets no checkbox. The checkbox is
  * Notification's address consent widget: it records the consent for that number, withdraws it on uncheck, moves it when
  * the number changes and re-checks the box when a withdrawal fails. Once a consent is recorded
@@ -15,8 +16,9 @@ define([
     'uiRegistry',
     'Magento_Checkout/js/model/quote',
     'CommerceKings_AbandonedCartSms/js/sms-phone-core',
+    'CommerceKings_Notification/js/address-consent-core',
     'CommerceKings_Notification/js/address-consent'
-], function ($, ko, Component, registry, quote, core) {
+], function ($, ko, Component, registry, quote, core, consentCore) {
     'use strict';
 
     return Component.extend({
@@ -45,8 +47,9 @@ define([
                     defaultCountry: self.country
                 });
             });
-            this.shown = ko.pureComputed(function () {
-                return core.display(self.number());
+            // the configured wording with the number in place of {{number}} - the label; the wording is the evidence
+            this.label = ko.pureComputed(function () {
+                return consentCore.renderWording(self.consent.wording, self.number(), '');
             });
             this.number.subscribe(function (number) {
                 self.numberChanged(number);

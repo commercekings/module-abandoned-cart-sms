@@ -22,12 +22,13 @@ built on `@api` and di.xml only. Start with the [README](../README.md).
   shipping address's `telephone` (its `sortOrder` + 1); for a signed-in customer with saved addresses – the form is then
   only the "New Address" pop-up – it goes after the address list (`address-list-additional-addresses`). The number is
   the shipping phone (the form's `checkoutProvider` data, or `quote.shippingAddress()` for a saved address) in E.164
-  with the address's country (`js/sms-phone-core`: `numberFor()`, the label *Yes, text me at …* with `display()`, the
-  configured consent text – the evidence – under it); a phone that cannot take texts gets no checkbox. It goes into a
-  hidden field, the phone of Notification's address consent widget (`CommerceKings_Notification/js/address-consent`):
-  checking records the consent, unchecking withdraws it, a changed number moves it, a failed withdrawal checks the box
-  again; no number unchecks it. When the consent is recorded (`ckAddressConsent:recorded`), the cart is signed up:
-  guests with the masked cart id, customers with the quote id and `/mine`.
+  with the address's country (`js/sms-phone-core`: `numberFor()`); the label is the configured consent wording – the
+  evidence – with the number in place of `{{number}}` (Notification's `address-consent-core`: `renderWording()`); a
+  phone that cannot take texts gets no checkbox. It goes into a hidden field, the phone of Notification's address
+  consent widget (`CommerceKings_Notification/js/address-consent`): checking records the consent, unchecking withdraws
+  it, a changed number moves it, a failed withdrawal checks the box again; no number unchecks it. When the consent is
+  recorded (`ckAddressConsent:recorded`), the cart is signed up: guests with the masked cart id, customers with the
+  quote id and `/mine`.
 
 ## Flow
 
@@ -51,9 +52,9 @@ get both, each once.
   – every Abandoned Cart and Notification class named in PHP or di.xml is `@api`, and the cart data and restore link
   come through proxies.
 - `Test/JavaScript`: E.164 conversion (international, national with trunk prefix, North America, Italy, refusals), the
-  number from the shipping phone (`numberFor()`), its display, the subscribe request, and the checkout component built
-  the way Magento's layout builder does it (the type arrives, the number field is bound in the template, a changed
-  phone moves the consent, no checkbox without a usable phone).
+  number from the shipping phone (`numberFor()`), the subscribe request, and the checkout component built the way
+  Magento's layout builder does it (the type arrives, the number field is bound in the template, a changed phone moves
+  the consent, no checkbox without a usable phone).
 - `Test/Integration/SmsReminderFlowTest.php` (a Magento development database): guest consent and sign-up through
   Notification, the finder, and one text through a fake SMS provider – once per cart, beside the email's history.
 

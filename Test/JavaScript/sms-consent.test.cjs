@@ -6,6 +6,25 @@ const vm = require('node:vm');
 
 const js = (file) => fs.readFileSync(path.join(__dirname, '../../view/frontend/web', file), 'utf8');
 
+/**
+ * Notification's address-consent-core (the checkbox wording with the number): its repository next to this one (as
+ * the checks check them out, and as in a development checkout), else the Magento installation's vendor copy.
+ */
+function notificationCore() {
+    const file = 'view/frontend/web/js/address-consent-core.js';
+    const candidates = [path.join(__dirname, '../../../module-notification', file)];
+    if (process.env.MAGENTO_ROOT) {
+        candidates.push(path.join(process.env.MAGENTO_ROOT, 'vendor/commercekings/module-notification', file));
+    }
+    const found = candidates.find((candidate) => fs.existsSync(candidate));
+    assert.ok(found, 'module-notification is needed next to this repository or in MAGENTO_ROOT/vendor');
+    let module;
+    vm.runInContext(fs.readFileSync(found, 'utf8'), vm.createContext({
+        define: (deps, factory) => { module = factory(); }, JSON, Promise, String, Object, Math
+    }));
+    return module;
+}
+
 /** A minimal knockout: observables, and computeds re-evaluated on every write (enough for this component). */
 function knockout() {
     const computeds = [];
@@ -87,7 +106,7 @@ function component(config, {provider = null, address = null} = {}) {
     const registry = {async: () => (cb) => cb(provider)};
     const window = {checkoutConfig: {quoteData: {entity_id: 'masked-1'}, isCustomerLoggedIn: false}};
     vm.runInContext(js('js/view/sms-consent.js'), vm.createContext({
-        define: (deps, factory) => factory(page.$, ko, uiComponent, registry, quote, core), window, String
+        define: (deps, factory) => factory(page.$, ko, uiComponent, registry, quote, core, notificationCore()), window, String
     }));
     const node = {component: 'CommerceKings_AbandonedCartSms/js/view/sms-consent', config};
     Object.assign(node, node.config, {index: 'ck-sms-consent', name: 'checkout.steps.ck-sms-consent'});
@@ -114,7 +133,8 @@ const CONFIG = {
     subscriptionType: 'cart_reminder_sms',
     country: 'DE',
     urls: {guest: '/rest/default/V1/ck-notification/subscriptions', mine: '/rest/default/V1/ck-notification/subscriptions/mine'},
-    consent: {wording: 'Yes, text me.', wordingHash: 'h1', urls: {guest: '/consents', mine: '/consents/mine'}},
+    consent: {wording: 'Yes, text me offers at {{number}}. Reply STOP to stop.', wordingHash: 'h1',
+        urls: {guest: '/consents', mine: '/consents/mine'}},
     placement: 'address-form'
 };
 
@@ -144,12 +164,11 @@ test('the shipping phone of the address form is the number, and a new one moves 
     const provider = form('060 123 4567', 'RS');
     const {instance, page} = component(CONFIG, {provider});
     assert.equal(instance.number(), '+381601234567');
-    assert.equal(instance.shown(), '+381 601234567');
+    assert.equal(instance.label(), 'Yes, text me offers at +381 60 123 4567. Reply STOP to stop.',
+        'one line: the configured wording with the number, grouped');
     const template = js('template/sms-consent.html');
-    assert.match(template, /<label class="label" for="ck-address-consent-cart_reminder_sms">\s*<span data-bind="text: \$t\('Yes, text me at %1\.'\)\.replace\('%1', shown\(\)\)"><\/span>\s*<\/label>/,
-        'the label: "Yes, text me at +381 601234567."');
-    assert.match(template, /<div class="note ck-sms-consent-wording">\s*<span data-bind="text: consent\.wording"><\/span>/,
-        'under it, the configured consent text - the evidence the server stores');
+    assert.match(template, /<label class="label" for="ck-address-consent-cart_reminder_sms">\s*<span data-bind="text: label"><\/span>\s*<\/label>/);
+    assert.doesNotMatch(template, /Yes, text me at|ck-sms-consent-wording|note/, 'no second line');
     page.state.checked = true;
     provider.set('telephone', '064 765 4321');
     assert.equal(page.state.hidden, '+381647654321');
@@ -176,4 +195,15 @@ test('only the shipping phone: no different-number link or input, and no checkbo
     assert.equal(instance.number(), '', 'too short: no checkbox');
     provider.set('telephone', '060 123 4567');
     assert.equal(instance.number(), '+381601234567');
+});
+
+test('the label follows the number; a wording without {{number}} is shown as it is, and its hash is sent unchanged', () => {
+    const provider = form('060 123 4567', 'RS');
+    const {instance, page} = component(CONFIG, {provider});
+    provider.set('telephone', '061 123 4530');
+    assert.equal(instance.label(), 'Yes, text me offers at +381 61 123 4530. Reply STOP to stop.');
+    assert.equal(page.state.widget.wordingHash, 'h1', 'the hash of the configured wording, not of the label');
+    const old = component({...CONFIG, consent: {...CONFIG.consent, wording: 'Yes, text me offers at this number.'}},
+        {provider: form('060 123 4567', 'RS')});
+    assert.equal(old.instance.label(), 'Yes, text me offers at this number.');
 });

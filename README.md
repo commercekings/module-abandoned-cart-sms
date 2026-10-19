@@ -64,12 +64,14 @@ Quiet hours, the recipient cooldown and STOP replies are Notification's settings
 
 ## At checkout
 
-Right under the shipping phone: the checkbox *Yes, text me at +381 601234567.*, with the checkbox text (Notifications >
-Consent for an address) under it – the text stored as the consent's evidence. The number is the shipping phone (the
-address form's, or the selected saved address's for a signed-in customer), read with the address's country, so a
-national number (`060 123 4567`) works; it is stored in E.164. A phone that cannot take texts (empty, too short, not a
-number) gets no checkbox. Ticking the box records the consent for that number and signs the cart up; unticking withdraws
-it and ends the sign-up. A changed shipping phone moves the consent.
+Right under the shipping phone: one checkbox, labelled with the checkbox text (*Notifications > Consent for an address*)
+with the number in place of `{{number}}` – by default *Yes, text me offers and reminders at +381 61 123 4530. Msg
+frequency varies; msg & data rates may apply. Reply STOP to stop.* The configured text is what is stored as the
+consent's evidence, with the number. The number is the shipping phone (the address form's, or the selected saved
+address's for a signed-in customer), read with the address's country, so a national number (`060 123 4567`) works; it is
+stored in E.164. A phone that cannot take texts (empty, too short, not a number) gets no checkbox. Ticking the box
+records the consent for that number and signs the cart up; unticking withdraws it and ends the sign-up. A changed
+shipping phone moves the consent.
 
 ## Before going live
 

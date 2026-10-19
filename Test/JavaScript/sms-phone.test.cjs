@@ -81,17 +81,6 @@ test('a shipping phone that cannot take texts gives no number (no checkbox)', ()
     }
 });
 
-test('display shows the calling code apart, and nothing for a non-number', () => {
-    const {display} = core();
-    assert.equal(display('+381601234567'), '+381 601234567');
-    assert.equal(display('+12125550100'), '+1 2125550100');
-    assert.equal(display('+447700900123'), '+44 7700900123');
-    assert.equal(display('+4915123456789'), '+49 15123456789');
-    for (const value of ['', '060 123 4567', '+0123456789', null]) {
-        assert.equal(display(value), '', JSON.stringify(value));
-    }
-});
-
 test('subscribe posts the type, the cart and the number to Notification\'s route', async () => {
     const {fetch, calls} = fetcher(200, true);
     assert.equal(await core().subscribe({url: '/rest/default/V1/ck-notification/subscriptions', type: 'cart_reminder_sms',

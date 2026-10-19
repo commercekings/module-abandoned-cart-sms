@@ -3,12 +3,9 @@
     <input type="hidden" id="ck-sms-phone-number" data-bind="value: number"/>
     <div data-bind="visible: number">
         <input type="checkbox" class="checkbox" id="ck-address-consent-cart_reminder_sms"/>
+        <!-- the configured consent wording (the evidence) with the number in place of {{number}} -->
         <label class="label" for="ck-address-consent-cart_reminder_sms">
-            <span data-bind="text: $t('Yes, text me at %1.').replace('%1', shown())"></span>
+            <span data-bind="text: label"></span>
         </label>
-        <!-- the configured consent text: what is stored (and hashed) as the evidence -->
-        <div class="note ck-sms-consent-wording">
-            <span data-bind="text: consent.wording"></span>
-        </div>
     </div>
 </div>
