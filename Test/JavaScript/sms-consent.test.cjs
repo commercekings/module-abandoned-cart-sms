@@ -250,94 +250,94 @@ test('the shipping phone of the address form is the number, shown in the one-lin
 });
 
 test('editing the number in place while ticked: nothing per keystroke, then withdrawn and unticked', async () => {
-    const provider = form('061 123 4530', 'RS');
+    const provider = form('(202) 555-0123', 'US');
     const c = component(CONFIG, {provider});
     await tick(c.page);
-    assert.deepEqual(c.page.state.posts, [{recipient: '+381611234530', given: true}]);
+    assert.deepEqual(c.page.state.posts, [{recipient: '+12025550123', given: true}]);
     c.page.state.changes = [];
-    // each step of editing "061 123 4530" in place used to be taken as a number (+38111234530, +3811234530, ...)
+    // each step of editing "(202) 555-0123" in place used to be taken as a number when it had a valid length
     c.field.focused(true);
-    for (const value of ['01 123 4530', '0 123 4530', '0 123 453', '064 123 453', '064 123 4531']) {
+    for (const value of ['(202) 555-012', '(202) 555-01', '(202) 555-', '(203) 555-01', '(203) 555-0124']) {
         provider.set('telephone', value);
-        assert.equal(c.instance.number(), '+381611234530', 'still the number the consent is for: ' + value);
+        assert.equal(c.instance.number(), '+12025550123', 'still the number the consent is for: ' + value);
     }
     await c.page.settle();
     assert.deepEqual(c.page.state.changes, [], 'nothing while typing');
     assert.equal(c.page.state.checked, true);
     c.field.focused(false);
     await c.page.settle();
-    assert.equal(c.instance.number(), '+381641234531');
+    assert.equal(c.instance.number(), '+12035550124');
     assert.equal(c.page.state.checked, false, 'unticked: the shopper ticks again for the new number');
-    assert.deepEqual(c.page.state.posts, [{recipient: '+381611234530', given: true},
-        {recipient: '+381611234530', given: false}], 'the old consent withdrawn, no consent for the new number');
+    assert.deepEqual(c.page.state.posts, [{recipient: '+12025550123', given: true},
+        {recipient: '+12025550123', given: false}], 'the old consent withdrawn, no consent for the new number');
     assert.deepEqual(c.page.state.changes.slice(0, 2),
-        [['box', 'change', false], ['hidden', 'change', '+381641234531']],
+        [['box', 'change', false], ['hidden', 'change', '+12035550124']],
         'unticked before the widget sees the new number');
-    assert.equal(c.instance.label(), 'Yes, text me offers at +381 64 123 4531. Reply STOP to stop.');
+    assert.equal(c.instance.label(), 'Yes, text me offers at +1 203 555 0124. Reply STOP to stop.');
 });
 
 test('a re-tick records the new number - only then', async () => {
-    const provider = form('061 123 4530', 'RS');
+    const provider = form('(202) 555-0123', 'US');
     const c = component(CONFIG, {provider});
     await tick(c.page);
-    edit(c, provider, ['064 123 4531']);
+    edit(c, provider, ['(203) 555-0124']);
     await c.page.settle();
     assert.equal(c.page.state.checked, false, 'a full new number after leaving the field: still unticked');
     assert.equal(c.page.state.posts.length, 2);
     await tick(c.page);
-    assert.deepEqual(c.page.state.posts.slice(2), [{recipient: '+381641234531', given: true}]);
+    assert.deepEqual(c.page.state.posts.slice(2), [{recipient: '+12035550124', given: true}]);
 });
 
 test('a country change while ticked: the consent is withdrawn and the box unticked, nothing recorded', async () => {
-    const provider = form('061 123 4530', 'RS');
+    const provider = form('(202) 555-0123', 'US');
     const c = component(CONFIG, {provider});
     await tick(c.page);
-    provider.set('country_id', 'BA');
+    provider.set('country_id', 'GB');
     await c.page.settle();
-    assert.equal(c.instance.number(), '+387611234530');
+    assert.equal(c.instance.number(), '+442025550123');
     assert.equal(c.page.state.checked, false);
-    assert.deepEqual(c.page.state.posts, [{recipient: '+381611234530', given: true},
-        {recipient: '+381611234530', given: false}]);
+    assert.deepEqual(c.page.state.posts, [{recipient: '+12025550123', given: true},
+        {recipient: '+12025550123', given: false}]);
 });
 
 test('a number cleared or no longer textable while ticked: withdrawn, unticked, no checkbox', async () => {
-    const provider = form('061 123 4530', 'RS');
+    const provider = form('(202) 555-0123', 'US');
     const c = component(CONFIG, {provider});
     await tick(c.page);
-    edit(c, provider, ['060 123', '123 4530']);
+    edit(c, provider, ['(202) 555', '555-0123']);
     await c.page.settle();
-    assert.equal(c.instance.number(), '', '123 4530 is too short for a Serbian mobile');
+    assert.equal(c.instance.number(), '', '555-0123 is too short for a North American number');
     assert.equal(c.page.state.checked, false);
-    assert.deepEqual(c.page.state.posts.slice(1), [{recipient: '+381611234530', given: false}]);
+    assert.deepEqual(c.page.state.posts.slice(1), [{recipient: '+12025550123', given: false}]);
 });
 
 test('the same number typed again in another way changes nothing', async () => {
-    const provider = form('061 123 4530', 'RS');
+    const provider = form('(202) 555-0123', 'US');
     const c = component(CONFIG, {provider});
     await tick(c.page);
-    edit(c, provider, ['06', '+381 61 123 4530']);
+    edit(c, provider, ['2', '+1 202 555 0123']);
     await c.page.settle();
     assert.equal(c.page.state.checked, true);
     assert.equal(c.page.state.posts.length, 1);
 });
 
 test('a phone filled in without focus (autofill, a script) is taken at once; a ticked box is unticked', async () => {
-    const provider = form('', 'RS');
+    const provider = form('', 'US');
     const c = component(CONFIG, {provider});
-    provider.set('telephone', '061 123 4530');
-    assert.equal(c.instance.number(), '+381611234530');
+    provider.set('telephone', '(202) 555-0123');
+    assert.equal(c.instance.number(), '+12025550123');
     await tick(c.page);
-    provider.set('telephone', '064 123 4531');
+    provider.set('telephone', '(203) 555-0124');
     await c.page.settle();
     assert.equal(c.page.state.checked, false);
     assert.equal(c.page.state.posts.filter((p) => p.given).length, 1, 'never recorded on the shopper\'s behalf');
 });
 
 test('without a phone field to watch (another checkout), the phone is taken as it changes', () => {
-    const provider = form('061 123 4530', 'RS');
+    const provider = form('(202) 555-0123', 'US');
     const c = component(CONFIG, {provider, phoneField: null});
-    provider.set('telephone', '064 123 4531');
-    assert.equal(c.instance.number(), '+381641234531');
+    provider.set('telephone', '(203) 555-0124');
+    assert.equal(c.instance.number(), '+12035550124');
 });
 
 test('a saved address: the selected address\'s phone; another address while ticked unticks', async () => {
@@ -367,8 +367,8 @@ test('only the shipping phone: no different-number link or input, and no checkbo
 test('the label follows the number; a wording without {{number}} is shown as it is, and its hash is sent unchanged', () => {
     const provider = form('060 123 4567', 'RS');
     const {instance, page} = component(CONFIG, {provider});
-    provider.set('telephone', '061 123 4530');
-    assert.equal(instance.label(), 'Yes, text me offers at +381 61 123 4530. Reply STOP to stop.');
+    provider.set('telephone', '+1 202 555 0123');
+    assert.equal(instance.label(), 'Yes, text me offers at +1 202 555 0123. Reply STOP to stop.');
     assert.equal(page.state.widget.wordingHash, 'h1', 'the hash of the configured wording, not of the label');
     const old = component({...CONFIG, consent: {...CONFIG.consent, wording: 'Yes, text me offers at this number.'}},
         {provider: form('060 123 4567', 'RS')});

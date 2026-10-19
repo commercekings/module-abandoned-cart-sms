@@ -100,7 +100,7 @@ define([], function () {
             return code + national.replace(trunk(code), ''); // the national trunk prefix
         }
         if (national.indexOf(code) === 0 && national.length > lengthsFor(code, country)[1]) {
-            // "381611234530" in Serbia: too long for a national number - the country code without + or 00
+            // "381601234567" in Serbia: too long for a national number - the country code without + or 00
             rest = trunkless(national.slice(code.length), code);
             if (fits(rest, code, country)) {
                 return code + rest;

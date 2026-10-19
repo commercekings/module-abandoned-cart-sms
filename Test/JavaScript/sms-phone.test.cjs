@@ -58,11 +58,11 @@ test('anything that cannot be a number is refused, like the server does', () => 
 
 test('a trunk 0 in brackets after the country code is not dialled', () => {
     const {toE164} = core();
-    assert.equal(toE164('+381 (0) 61 123 4530', 'RS'), '+381611234530');
-    assert.equal(toE164('+381(0)611234530', 'DE'), '+381611234530');
+    assert.equal(toE164('+381 (0) 60 123 4567', 'RS'), '+381601234567');
+    assert.equal(toE164('+381(0)601234567', 'DE'), '+381601234567');
     assert.equal(toE164('0044 (0)7700 900123', 'RS'), '+447700900123');
     assert.equal(toE164('+44 (0) 7700-900123', 'GB'), '+447700900123');
-    assert.equal(toE164('+381 061 123 4530', 'RS'), '+381611234530', 'nor a trunk 0 typed without brackets');
+    assert.equal(toE164('+381 060 123 4567', 'RS'), '+381601234567', 'nor a trunk 0 typed without brackets');
     assert.equal(toE164('+39 06 1234 5678', 'IT'), '+390612345678', 'Italy keeps its 0');
 });
 
@@ -79,9 +79,9 @@ test('Hungary\'s trunk prefix is 06, Lithuania\'s 0 or 8', () => {
 
 test('a country code typed without + or 00 is not added twice', () => {
     const {toE164} = core();
-    assert.equal(toE164('381611234530', 'RS'), '+381611234530');
-    assert.equal(toE164('381 61 123 4530', 'RS'), '+381611234530');
-    assert.equal(toE164('3810611234530', 'RS'), '+381611234530', 'with the trunk 0 after it');
+    assert.equal(toE164('381601234567', 'RS'), '+381601234567');
+    assert.equal(toE164('381 60 123 4567', 'RS'), '+381601234567');
+    assert.equal(toE164('3810601234567', 'RS'), '+381601234567', 'with the trunk 0 after it');
     assert.equal(toE164('4915123456789', 'DE'), '+4915123456789');
     assert.equal(toE164('447700900123', 'GB'), '+447700900123');
     assert.equal(toE164('393331234567', 'IT'), '+393331234567');
@@ -91,8 +91,8 @@ test('a country code typed without + or 00 is not added twice', () => {
 
 test('a number shorter than a mobile number of its country gives none, so a partial number never passes', () => {
     const {toE164} = core();
-    for (const [input, country] of [['123 4530', 'RS'], ['1234530', 'RS'], ['555 1234', 'RS'], ['061 123 45', 'RS'],
-        ['+3811234530', 'RS'], ['+381 61 27', 'DE'], ['0151 234567', 'DE'], ['07700 9001', 'GB'], ['06 12 34 56', 'FR'],
+    for (const [input, country] of [['123 4567', 'RS'], ['1234567', 'RS'], ['555 1234', 'RS'], ['060 123 45', 'RS'],
+        ['+3811234567', 'RS'], ['+381 60 12', 'DE'], ['0151 234567', 'DE'], ['07700 9001', 'GB'], ['06 12 34 56', 'FR'],
         ['091 234 56', 'HR'], ['061 234 56', 'BA'], ['031 234 5', 'SI'], ['0664 12', 'AT'], ['212 555 010', 'US'],
         ['06 1234 567', 'NL'], ['333 123', 'IT'], ['+44 7700 9001', 'RS'], ['+1 212 555 010', 'RS']]) {
         assert.equal(toE164(input, country), '', JSON.stringify([input, country]));
@@ -102,7 +102,7 @@ test('a number shorter than a mobile number of its country gives none, so a part
 test('a mobile number of each listed country passes, and other countries need seven national digits', () => {
     const {toE164} = core();
     for (const [input, country, expected] of [
-        ['061 123 4530', 'RS', '+381611234530'], ['063 123 456', 'RS', '+38163123456'],
+        ['060 123 4567', 'RS', '+381601234567'], ['063 123 456', 'RS', '+38163123456'],
         ['0664 1234567', 'AT', '+436641234567'], ['091 234 5678', 'HR', '+385912345678'],
         ['061 234 567', 'BA', '+38761234567'], ['031 234 567', 'SI', '+38631234567'],
         ['06 12 34 56 78', 'FR', '+33612345678'], ['06 12345678', 'NL', '+31612345678'],
@@ -116,7 +116,7 @@ test('a mobile number of each listed country passes, and other countries need se
 
 test('a too long number of a listed country gives none', () => {
     const {toE164} = core();
-    assert.equal(toE164('061 123 4530 12', 'RS'), '');
+    assert.equal(toE164('060 123 4567 12', 'RS'), '');
     assert.equal(toE164('+44 7700 9001234', 'RS'), '');
 });
 

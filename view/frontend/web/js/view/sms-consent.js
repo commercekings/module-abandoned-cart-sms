@@ -1,7 +1,7 @@
 /**
  * Luma checkout: the text reminder checkbox right under the shipping phone (a jsLayout child, placed by
  * Model\Checkout\SmsConsentLayout). Its label is the configured consent wording with the number in place of
- * {{number}} ("Yes, text me offers and reminders at +381 61 123 4530. …", Notification's renderWording()); the
+ * {{number}} ("Yes, text me offers and reminders at +1 202 555 0123. …", Notification's renderWording()); the
  * wording itself is the evidence. The number is the shipping phone - the address form's, or the selected saved
  * address's - in E.164 with the address's country (sms-phone-core); a phone that cannot take texts gets no checkbox.
  * The number is taken when the shopper has finished typing it (the phone field loses focus), on a country change and
