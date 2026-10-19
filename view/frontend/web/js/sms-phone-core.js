@@ -38,6 +38,9 @@ define([], function () {
     /** Calling codes whose national numbers keep their leading 0 (Italy and the Vatican, San Marino). */
     var KEEP_ZERO = {39: true, 378: true};
 
+    /** National trunk prefixes other than 0 (libphonenumber's): Hungary 06, Lithuania 0 or 8. */
+    var TRUNKS = {36: /^06/, 370: /^[08]/};
+
     /**
      * Mobile national number lengths (without the trunk 0; libphonenumber's metadata): texts go to mobiles, so a
      * shorter number - a landline, or one still being typed - gets no checkbox. Countries not listed: MIN_NATIONAL.
@@ -93,8 +96,8 @@ define([], function () {
         if (code === '1' && national.length === 11 && national.charAt(0) === '1') {
             return code + national.slice(1); // a NANP number typed with its trunk 1
         }
-        if (national.charAt(0) === '0' && !KEEP_ZERO[code]) {
-            return code + national.slice(1); // the national trunk prefix
+        if (trunk(code).test(national)) {
+            return code + national.replace(trunk(code), ''); // the national trunk prefix
         }
         if (national.indexOf(code) === 0 && national.length > lengthsFor(code, country)[1]) {
             // "381611234530" in Serbia: too long for a national number - the country code without + or 00
@@ -106,9 +109,14 @@ define([], function () {
         return code + national;
     }
 
-    /** The national number after a country code: a trunk 0 typed after it ("+381 061 …") is dropped. */
+    /** The national number after a country code: a trunk prefix typed after it ("+381 061 …") is dropped. */
     function trunkless(national, code) {
-        return national.charAt(0) === '0' && !KEEP_ZERO[code] ? national.slice(1) : national;
+        return national.replace(trunk(code), '');
+    }
+
+    /** The country's national trunk prefix (none where national numbers keep their 0). */
+    function trunk(code) {
+        return KEEP_ZERO[code] ? /^(?!)/ : TRUNKS[code] || /^0/;
     }
 
     /** The national number's length is a mobile number's of the country (Italy's start with 0 or 3). */

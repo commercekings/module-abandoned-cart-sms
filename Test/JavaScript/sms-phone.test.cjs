@@ -66,6 +66,17 @@ test('a trunk 0 in brackets after the country code is not dialled', () => {
     assert.equal(toE164('+39 06 1234 5678', 'IT'), '+390612345678', 'Italy keeps its 0');
 });
 
+test('Hungary\'s trunk prefix is 06, Lithuania\'s 0 or 8', () => {
+    const {toE164} = core();
+    assert.equal(toE164('06 30 123 4567', 'HU'), '+36301234567');
+    assert.equal(toE164('+36 06 30 123 4567', 'RS'), '+36301234567', 'also typed after the country code');
+    assert.equal(toE164('30 123 4567', 'HU'), '+36301234567');
+    assert.equal(toE164('8 612 34567', 'LT'), '+37061234567');
+    assert.equal(toE164('0 612 34567', 'LT'), '+37061234567');
+    assert.equal(toE164('+370 8 612 34567', 'RS'), '+37061234567');
+    assert.equal(toE164('612 34567', 'LT'), '+37061234567');
+});
+
 test('a country code typed without + or 00 is not added twice', () => {
     const {toE164} = core();
     assert.equal(toE164('381611234530', 'RS'), '+381611234530');
